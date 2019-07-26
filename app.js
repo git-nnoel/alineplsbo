@@ -15,6 +15,43 @@ const app = {
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstar", "crayzerbr"],
+	cute_messages : [
+		"oi chat, ja disse que amo vocês?",
+		"@chat vocês são muitos fofos cellFofo",
+		"@chat cellTa 📱 ⚡ ❓ ",
+		"AYAYA meu kokoro artificial faz doki doki por vocês chat",
+		"@chat, quem de vocês querem um abraço? AYAYA FBCatch",
+		"BibleThump eu só queria saber quando começa a lvieeer?",
+		"cellFofo FBCatch 💜 @chat",
+		"cellTa nossa chat, vocês cortaram o cabelo?",
+		"cellTa vocês estão cheirosos hoje chat",
+		"KKonaW hi chat, I love u",
+		":z 👎 unmod nnoel que não cuida de mim",
+		"digita !tutorial se você for novo aqui :z TeaTime",
+		"cellPP @chat, me da um gifto sub? :D",
+		"AYAYA where's my weeb friends❓",
+		"💪 cellGr digita \"$love alinepls\" agora, vou quebrar quem der menos de 80%",
+		"cellTa como as cores num retrato o tempo insiste em desbotar. vem ca chat, me passa seu celular 📱 ⚡ ❓",
+		"cellTa esse cheiro maravilhoso é de vocês chat?",
+		":/ 📝 ✉ i'm writting a letter for you, say: you're really cute 💜",
+		":/ ✏ 🗺 ainda procurando o nucleo da toxicidade ta twitch",
+		"5Head 📖 📚 \"não como andar na água é nadar contra OkayChamp\" - Bhaskarai, 2019",
+		"cellGr digitem \"$love alinepls\" agora. ban em quem der menos que 80%",
+		"cellFofo @chat, o unico ataque dos titans que conheço é meu amor invadindo seu coração 💜",
+		"cellTa @chat você ja é vip no meu coração",
+		"AYAYA chat, vamo ve anime ❓ ",
+		"cellFofo @chat, meu amor por vocês é maior que o amor do blublu por persona",
+		"cellGr cheguei, cade o spam de amor?",
+		"cellPP @mods, como que compra essa espadinha do lado do nome?",
+		"cellGr 👉 🚪 quem não me ama",
+		":/ chat, perdão por perturbar vocês, minha twitch ta bugada. podem me dizer que horas vocês vão declarar seu amor por mim? cellFofo",
+		"cellTa @chat, me chama no 📱 ⚡, meu numero é: 9",
+		":z \"$love alinepls\" agora no chat. menos de 60% é kpopper",
+		":D ola a todos os web internaltas que aqui se encontram, ja estava com saudade",
+		"cellPP @moobot, cade o laivi?",
+		"cellGr quem me ofender é kpopper",
+		"💪 cellGr cade aqueles que não gostam de mim pra sair no soco?"
+	],
 
 	regex : {},
 
@@ -456,6 +493,17 @@ const app = {
 
 	},
 
+	randomAutoAnswer(){
+
+		const timer = randomInt(3600000, 10800000);
+		setTimeout(() => {
+
+			app.say("#cellbit", app.cute_messages[randomInt(0, app.cute_messages.length - 1)]);
+			app.randomAutoAnswer();
+
+		}, timer);
+
+	},
 	testAutoAnswer(rawText, username, target){
 
 		let toAnalise = rawText.replaceAll("󠀀", "").deepTrim();
@@ -520,6 +568,7 @@ const app = {
 	onConnect(addr, port) {
 
 		console.log(`* Connected to ${addr}:${port}`);
+		app.randomAutoAnswer();
 
 	},
 	onMessage(target, context, rawText, self){
