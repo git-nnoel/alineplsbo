@@ -1,979 +1,600 @@
 // Requires
 const tmi = require('tmi.js');
-const getJSON = require('get-json');
+const fetch = require("node-fetch");
+const {randomInt, sqlite, dateInterval} = require("./src/tools");
 require("dotenv").config();
-
-const {randomInt, sqlite, dateInterval} = require("./src/maux");
-
-require("./src/prototypes");
-
 
 // Handlers
 const app = {
 
-    messageRateCounter: 0,
-    sleepTime: false,
-    blockedOnCellbit: false,
+	conn : null,
+
+	messageRateCounter: 0,
+	sleepTime: false,
+	mute: {nnoel : false, cellbit : false},
+	masters : ["nnoel", "emma_lee", "bhaskarai"],
+	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "liriabot", "alinepls"],
+	ignore : ["necronstar", "crayzerbr", "dinokat"],
+	// vai la beijar a satanya velho filho da puta cellGr
+
+	regex : {},
+
+	preprocess(){
+
+		const emotes = [];
+		const emotes1 = ["ve os {replace}", "ver os {replace}", "vejo os {replace}", "vejo esses {replace}", "como que ve esses {replace}", "onde que ve esses {replace}", "baixo essa {replace}", "o que e {replace}", "consigo essa {replace}", "baixa essa {replace}", "baixa a {replace}", "e essa {replace}", "extensao dos {replace}", "extencao dos {replace}"];
+		const emotes2 = ["emotes", "emote", "emoji", "emoticon", "emojis", "emoticons", "emtes", "extensao", "extencao", "extenção", "extensão", "bbtv", "bttv"];
+		emotes1.each(c1 => {
+			emotes2.each(c2 => {
+
+				emotes.push(c1.replaceAll("{replace}", c2).removeAccents().removeRepeats().trim())
+
+			})
+		});
 
-    isOnRateLimit() {
+		const fakeTest = [":D", ":\\)", ";\\)", "R\\)", ":\\(", ":Z", ">\\(", ":O", ":P", ":z", ":\\|", ":\\/", "cellPP", "cellX",
+			"cellTa", "cellOi", "cellNormie", "AYAYA", "cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "Pepega"];
+
+		const hel = [];
+		const hellos = ["eae", "oi", "ola", "bom dia", "boa tarde", "boa noite", "tchau", "flw", "xau", "hi"];
+		const names = ["chat", "aline", "alinepls", "galera", "galero", "pessoas", "pessoal"];
+		hellos.each(hello => {
+			names.each(name => {
+
+				hel.push(`${hello} ${name}`);
+				hel.push(`${name} ${hello}`);
+
+			})
+		});
 
-        return app.messageRateCounter >= messagesRateLimit
+		const lives = [];
+		const lives1 = ["live", "lives", "laive", "streams", "stream", "live stream", "celbit", "cellbo", "celbinho", "cel", "celbitos", "celbitinho", "zerbit", "lvie", "liev"];
+		const lives2 = ["a {replace}", "tem {replace}", "o {replace}", "{replace} hoje", "{replace} hj", "e a {replace}", "e as {replace}", "sao as {replace}", "comeca a {replace}", "comeca as {replace}", "comecam as {replace}", "horas tem {replace}", "horas e a {replace}", "hora e a {replace}", "hora tem {replace}"];
+		const lives3 = ["kd", "cade", "tem", "qndo", "quando", "vai", "cde", "qando", "tm", "que", "te", "onde", "ta", "comeca", "comecar", "hj", "hoje", "amanha"];
+		lives1.each(l1 => {
+			lives2.each(l2 => {
+				lives3.each(l3 => {
 
-    },
+					const clear = l2.replaceAll("{replace}", l1).removeAccents().removeRepeats().trim();
+					lives.push(`${l3} ${clear}`);
+					lives.push(`${clear} ${l3}`);
 
-    onConnect(addr, port) {
+				});
+			});
+		});
 
-        console.log(`* Connected to ${addr}:${port}`);
+		const plug = ["link do plug", "ouvindo musica"];
 
-    },
 
+		// const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA",
+		// 	"cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa"];
+		// const alinefeliz = ["alinepls", "aline", "alienpls"];
+		// const smilephrase = [
+		// 	"{replace} {replace2}",
+		// 	"{replace2} {replace}"
+		// ];
+		// alinefeliz.each(al => {
+		// 	smiles.each(sm => {
+		// 		smilephrase.each(smp => {
+		// 			if (toAnalise.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", sm))) {
+		// 				setTimeout(function () {
+		// 					app.say(`${username} ` + sm);
+		// 				}, 600);
+		//
+		// 				return true;
+		//
+		// 			} else if (toAnalise.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", "R)"))) {
+		// 				setTimeout(function () {
+		// 					app.say(`${username} R) arrrg`);
+		// 				}, 600);
+		//
+		// 				return true;
+		// 			}
+		//
+		// 		})
+		// 	})
+		// });
 
-    onMessage(target, context, rawText, self) {
-      const channel_name1 = target.replace("#", "");
-        if (
+		app.regex.testForFake  = new RegExp("(" + fakeTest.join("|") + ")");
+		app.regex.lives        = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
+		app.regex.emotes       = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
+		app.regex.hello        = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
+		app.regex.plug         = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 
-            self ||
-            context["username"] === process.env.BOT_USERNAME ||
-            context["message-type"] !== "chat" ||
-            app.isOnRateLimit()
+	},
+	autoMute(){
 
-        )
-          return;
-        else if(app.blockedOnCellbit === true && channel_name1 === "cellbit")
-         return;
+		setInterval(() => {
 
-        // maux
-        const sendToIRC = (cb, retain, useSleep = true) => {
+			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': 'ecgfmopuk1i53vofoflwbbvwnxfxvk'}})
+				.then(res => res.json())
+				.then(res => {
 
-            if ((!useSleep && !app.isOnRateLimit()) || (useSleep && !app.sleepTime && !app.isOnRateLimit())) {
+				app.mute.cellbit = res.data.length > 0;
 
-                app.messageRateCounter++;
-                app.sleepTime = true;
+			});
 
-                cb();
+		}, 20000);
 
-                setTimeout(() => {
-                    app.messageRateCounter--
-                }, 20000);
-                setTimeout(() => {
-                    app.sleepTime = false
-                }, 2000);
+	},
 
-            } else {
+	say(target, msg, retain = false){
 
-                if (retain) {
+		setTimeout(() => {
 
-                    setTimeout(() => {
+			if (!app.sleepTime && app.messageRateCounter < 18) {
 
-                        sendToIRC(cb, retain);
+				if(!msg.testBanned(target.replace("#", ""), "$")){
 
-                    }, 1000);
+					app.messageRateCounter++;
+					app.sleepTime = true;
 
-                }
+					app.conn.say(target, msg);
 
-            }
+					setTimeout(() => {
+						app.messageRateCounter--
+					}, 20000);
+					setTimeout(() => {
+						app.sleepTime = false
+					}, 2000);
 
-        };
-        var lastmsg;
-        const say = (msg, retain = false, useSleep = true) => {
-            sendToIRC(() => {
-//              if (target.indexOf(`.com`)== -1 && target.indexOf(`_com`)== -1 )
-//              if (msg.indexOf(`.com`)== -1 && msg.indexOf(`_com`)== -1 ){
-                if (msg != this.lastmsg) {
-                    this.lastmsg = msg;
-                    client.say(target, msg);
-                } else if (msg == this.lastmsg) {
-                    msg = msg + " 󠀀 ";
-                    client.say(target, msg + " 󠀀 ");
-                    this.lastmsg = msg + " 󠀀 "
-//              }
-                }
+				}
 
-            }, retain, useSleep);
+			}
+			else if (retain)
+				setTimeout(() => {app.say(target, msg, retain)}, 1000);
 
-        };
-        const ban = (reason, retain = true) => {
-          if (channel_name1 != "cellbit")
-            sendToIRC(() => {
+		}, 1000);
 
-                client.ban(target, username, reason)
-                    .then((data) => {
-                        console.log("Banned: ", username)
-                    }).catch((err) => {
-                    console.log(err)
-                });
+	},
 
-            }, retain);
+	save_message(username, channel_name, rawText, prefix){
 
-        };
-        const unBan = (retain = true) => {
-          if (channel_name1 != "cellbit")
-            sendToIRC(() => {
+		let exist = sqlite.select("select name from user where name = ?", username);
+		if (exist.length < 1) {
 
-                client.unban(target, username)
-                    .then((data) => {
+			sqlite.run("insert into user (name) values (?)", username)
 
-                        console.log("Unbanned: ", username)
+		}
+		if (rawText.charAt(0) !== prefix) {
 
-                    }).catch((err) => {
+			sqlite.run("insert into message_on_channel(channel_name, user_name, message, sended_at) values(?, ?, ?, CURRENT_TIMESTAMP)", channel_name, username, rawText);
 
-                    console.log(err);
+		}
 
-                });
+	},
+	has_remind(username, target){
 
-            }, retain);
+		const hasMessage = sqlite.select("select user_from, message from remind where user_to = ?", username);
+		if (hasMessage.length > 0){
 
-        };
-        const timeout = (s, reason, retain = true) => {
-          if (channel_name1 != "cellbit")
-            sendToIRC(() => {
+			hasMessage.forEach(messageData => {
 
-                client.timeout(target, username, s, reason)
-                    .then((data) => {
+				const from = messageData["user_from"];
+				const message = messageData["message"];
 
-                        console.log(`Timeout ${s} seconds: `, username)
+				app.say(target, `${from} > ${username}: ${message}`, true);
 
-                    }).catch((err) => {
+			});
+			sqlite.run("delete from remind where user_to = ?", username);
+			return true;
 
-                    console.log(err);
+		}else return false;
 
-                });
+	},
+	is_return_afk(username, target){
 
-            }, retain);
+		const isReturnOfAFK = sqlite.select("select message, started_at from afk where user_name = ?", username);
+		if (isReturnOfAFK.length > 0) {
 
-        };
-        const deleteMessage = (retain = true) => {
-          if (channel_name1 != "cellbit")
-            sendToIRC(() => {
+			app.say(target, `${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"])}: ${isReturnOfAFK[0]["message"]}`, true);
+			sqlite.run("delete from afk where user_name = ?", username);
 
-                client.deletemessage(target, messageID).then((data) => {
+			return true;
 
-                    console.log(`Deleted message: `, username)
+		}else return false;
 
-                }).catch((err) => {
+	},
+	is_a_command(rawText, prefix, username, target){
 
-                    console.log("error");
-                    console.log(err);
+		let toCommand = rawText.replaceAll("󠀀", "").deepTrim().split(" ");
 
-                });
+		let channel_name = target.replace("#", "");
+		let allCommands = {
 
-            }, retain);
+			//"repetir" : ``,
+			//"piramide" : ``,
+			//"spam" : ``,
 
-        };
+			"%": `retorna uma porcentagem aleatória. Sintaxe: \`${prefix}%\``,
+			"love" : `nivel de amor entre você e alguma outra coisa. Sintaxe: \`${prefix}love moobot\``,
+			"afk": `informa que o usuário está ausente. Sintaxe: \`${prefix}afk {mensagem}\``,
+			"rl": `retorna uma mensagem aleátoria enviada pelo usuário no canal. Sintaxe: \`${prefix}rl\` ou \`${prefix}rl {usuario}\``,
+			"rq": `retorna uma mensagem aleátoria enviada no canal. Sintaxe: \`${prefix}rq\``,
+			"carta": `envia uma carta para o usuário que será recebida na proxima vez que ele mandar uma mensagem nos chats que eu estou. Sintaxe: \`${prefix}carta {usuario} {mensagem}\``,
 
-        // Set Vars
-        const channel_name = target.replace("#", "");
-        const displayName = context["display-name"];
-        const username = context["username"];
-        const userID = context["user-id"];
-        const messageID = context["id"];
-        const messageType = context["message-type"];
-        const isMod = context["mod"];
-        const isSubscriber = context["subscriber"];
-        const prefix = sqlite.select("select prefix from channel where name = ?", channel_name)[0]["prefix"];
-        const bannedPhrases = sqlite.select("select phrase, action from bannedPhrase where channel_name = ?", channel_name);
+			"comando": `fornece mais informações sobre um comando. Sintaxe \`${prefix}comando {comando}\``,
+			"comandos": `exibe os comandos disponiveis no canal. Sintaxe: \`${prefix}comandos\``,
 
-        let toAnalise = rawText.removeSpecialChars(prefix).removeRepeats().trim();
-        let toCommand = rawText.replaceAll("󠀀", "").deepTrim().split(" ");
-        let toLookfor = rawText.replaceAll("󠀀", "").deepTrim();
+		};
+		let msg;
 
-        // Set vars
-        let fakeI = toAnalise.replaceAll("I", "l", true).toLowerCase();
-        let fakeL = toAnalise.replaceAll("l", "I", true).toLowerCase();
-        let fakeY = toAnalise.replaceAll("y", "i").toLowerCase();
-        let fakeI2 = toAnalise.replaceAll("i", "y").toLowerCase();
-        toAnalise = toAnalise.toLowerCase();
+		// Commands test
+		switch (toCommand.shift().toLowerCase()) {
 
-        // Delete Tests
-        let action = null;
-        const defineAction = (actionDefined, action) => {
+			// Dead
+			case `${prefix}repetir`:
+				return;
+				const times = Math.abs(parseInt(toCommand.shift()));
+				if (!isNaN(times) && toCommand.length > 0) {
 
-            if (action) {
+					let toRepeat = toCommand.join(" ");
+					if (toRepeat[toRepeat.length - 1] !== "\\") {
 
-                if (actionDefined === "ban") {
+						toRepeat += " "
 
-                    action = "ban"
+					} else {
 
-                } else if (!isNaN(actionDefined)) {
+						toRepeat = toRepeat.slice(0, toRepeat.length - 1)
 
-                    action = (!isNaN(action))
-                        ? parseInt(action) + parseInt(actionDefined)
-                        : parseInt(actionDefined);
+					}
 
-                }
+					var toSend = toRepeat.repeat(times).slice(0, 80);
+					app.say(`${username}, ` + toSend);
 
-            } else {
+				}
 
-                action = actionDefined;
+				return true;
+			case `${prefix}piramide`:
+				return;
+				const size = Math.abs(parseInt(toCommand.shift()));
+				if (!isNaN(size) && toCommand.length > 0) {
 
-            }
+					let toRepeat = toCommand.join(" ");
 
-            return action;
 
-        };
+					toRepeat += " ";
 
-        bannedPhrases.each((bannedPhrase) => {
+					let sizeinit = 0;
+					while (sizeinit <= size) {
+						app.say(toRepeat.repeat(sizeinit), false);
+						sizeinit++;
+					}
+					sizeinit = size - 1;
+					while (sizeinit >= 0) {
+						app.say(toRepeat.repeat(sizeinit), false);
+						sizeinit--;
+					}
 
-            if (
+				}
 
-                toAnalise.contains(bannedPhrase.phrase) ||
-                fakeI.contains(bannedPhrase.phrase) ||
-                fakeL.contains(bannedPhrase.phrase) ||
-                fakeY.contains(bannedPhrase.phrase) ||
-                fakeI2.contains(bannedPhrase.phrase)
+				return true;
+			case `${prefix}spam`:
+				return;
+				const toSpam = toCommand.join(" ");
+				const spamallowed = ["nnoel", "liriapatin", "bhaskarai"];
+				spamallowed.each(sall => {
+					if (toSpam.length > 0 && `${username}` == sall) {
 
-            ) {
+						let count = 0;
+						let interval = setInterval(() => {
 
-                action = defineAction(bannedPhrase.action, action);
+							app.say(toSpam, false, false);
+							count++;
+							if (count === 25) {
+								clearInterval(interval);
+							}
 
-            }
+						}, 100);
 
-        });
+					}
+				});
+				return true;
+			// Dead
 
-        // Ban Phrase Detector test
-        /*
-                function DetectBanPhrase (msgtosearch){
-                  console.log(msgtosearch);
-                  bannedPhrases.each((bannedPhrase) => {
-                  if (
+			case `${prefix}%`:
+				toCommand = toCommand.join(" ");
+				if (toCommand.contains("ayaya") || toCommand.contains("carlarai"))
+					msg = `${username}, ${randomInt(80, 100)}% AYAYA`;
+				else
+					msg = `${username}, ${randomInt(0, 100)}% Thonk`;
 
-                      toAnalise.contains(msgtosearch.phrase) ||
-                      fakeI.contains(msgtosearch.phrase) ||
-                      fakeL.contains(msgtosearch.phrase) ||
-                      fakeY.contains(msgtosearch.phrase) ||
-                      fakeI2.contains(msgtosearch.phrase)
+				app.say(target, msg);
 
-                  ) {
-                      console.log("1");
-                      return true;
-                  }
-                  });
-                  return;
+				return true;
+			case `${prefix}love`:
 
-                }
-        */
+				const percent = [
 
+					`${randomInt(70, 100)}% love Pog ❤ `,
+					`${randomInt(40, 70)}% love cellA`,
+					`${randomInt(20, 40)}% love :| TeaTime`,
+					`${randomInt(0, 20)}% love cellH 💔 `,
 
-        if (action) {
+				];
 
-            switch (action) {
-                case "del":
-                    deleteMessage();
-                    return;
+				let lTarget = toCommand.join(" ");
+				if (username === "nnoel")
+					msg = `${username} & ${lTarget}: ${randomInt(70, 100)}% love Pog ❤ `;
 
-                case "ban":
-                    ban("Você disse uma palavra ruim D:");
-                    return;
+				else if ((username === "bhaskarai" && lTarget === "carlamorena") || (username === "carlamorena" && lTarget === "bhaskarai"))
+					msg = `${username} & ${lTarget}: 100% love 💓 😍`;
 
-                default:
-                    timeout(action, "Você disse uma palavra ruim D:");
-                    return;
+				else if (username === "dinokat" && (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin"))
+					msg = `${username} :z http://prntscr.com/ojpjr6`;
 
-            }
+				else if (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin")
+					msg = `0% love cellH 💔`;
 
-        }
+				else
+					msg = `${username} & ${lTarget}: ${percent[randomInt(0, percent.length - 1)]}`;
 
-        const maskFakeMod = ["me da ?", "me da um ?", "mim da ?", "min da um ?", "? em mim", "? ne mim", "? em eu", "cade meu ?", "quero um ?", "? eu quero"];
-        const actionFakeBan = ["ban", "banimento"];
-        const actionFakeTimeout = ["to", "timeout", "time out", "out time", "outtime", "tempo fora"];
+				app.say(target, msg, true);
+				return true;
+			case `${prefix}afk`:
+				if (toCommand.length > 0)
+					msg = toCommand.join(" ");
 
-        let flagged;
-        action = null;
+				else
+					msg = "🔇 :z";
 
-        maskFakeMod.each(fakeBannedPhrase => {
+				sqlite.run("insert into afk(user_name, message, started_at) values(?, ?, CURRENT_TIMESTAMP)", username, msg);
+				app.say(target,`o ${username} está afk agora :z 💤 `, true);
 
-            flagged = actionFakeBan.each(toReplace => {
+				return true;
+			case `${prefix}rl`:
 
-                if (toAnalise.contains(fakeBannedPhrase.replaceAll("?", toReplace))) {
+				let uTarget;
+				if (toCommand.length > 0)
+					uTarget = toCommand.shift().toLowerCase();
+				else
+					uTarget = username;
 
-                    action = "ban";
-                    return true;
+				// noinspection SqlResolve
+				let dResult = sqlite.select(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by random() limit 1`, [channel_name, uTarget]);
+				if (dResult.length > 0) {
 
-                }
+					let message = dResult[0]["message"];
 
-            });
-            if (flagged) return true;
+					let date = new Date(dResult[0]["sended_at"] + " GMT");
 
-            flagged = actionFakeTimeout.each(toInsert => {
+					let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
+					let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
+					let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
+					let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
 
-                if (toAnalise.contains(fakeBannedPhrase.replaceAll("?", toInsert))) {
+					let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
+					let hourFormatted = `${hours}:${minutes}`;
 
-                    action = "86400";
-                    return true;
+					msg = `[${dateFormatted} - ${hourFormatted}] ${uTarget}: ${message}`;
 
-                }
+				} else
+					msg = `${username} acho que eu nunca vi essa pessoa por aqui ppL `;
 
-            });
-            if (flagged) return true;
+				app.say(target, msg);
 
-        });
+				return true;
+			case `${prefix}rq`:
 
-        if (action) {
+				// noinspection SqlResolve
+				let dataResult = sqlite.select(`SELECT user_name, message, sended_at FROM message_on_channel WHERE channel_name = ? order by random() limit 1`, [channel_name]);
+				if (dataResult.length > 0) {
 
-            switch (action) {
-                case "del":
-                    deleteMessage();
-                    return;
+					let message = dataResult[0]["message"];
+					let user = dataResult[0]["user_name"];
 
-                case "ban":
-                    ban("Você pediu :)");
-                    unBan();
-                    return;
+					let date = new Date(dataResult[0]["sended_at"] + " GMT");
 
-                default:
-                    timeout(action, "Você pediu :)");
-                    unBan();
-                    return;
+					let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
+					let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
+					let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
+					let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
 
-            }
+					let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
+					let hourFormatted = `${hours}:${minutes}`;
 
-        }
+					msg = `[${dateFormatted} - ${hourFormatted}] ${user}: ${message}`;
 
+				} else
+					msg = `${username} acho que eu nunca vi essa pessoa por aqui ppL `;
 
-        let exist = sqlite.select("select name from user where name = ?", username);
-        if (exist.length < 1) {
+				app.say(target, msg);
 
-            sqlite.run("insert into user (name) values (?)", username)
+				return true;
+			case `${prefix}carta`:
 
-        }
-        if (toCommand[0].indexOf(prefix) === -1) {
+				if (toCommand.length > 1) {
 
-            sqlite.run("insert into message_on_channel(channel_name, user_name, message, sended_at) values(?, ?, ?, CURRENT_TIMESTAMP)", channel_name, username, rawText);
+					const toMessage = toCommand.shift().toLowerCase();
+					const message = toCommand.join(" ");
+					if (
+						!app.ignore.includes(toMessage) &&
+						!app.bots.includes(toMessage)
+					) {
 
-        }
+						const userExists = sqlite.select("select name from user where name = ?", toMessage);
+						if (userExists.length > 0) {
 
+							const count = sqlite.select("select count(user_to) as cRemind from remind where user_to = ?", toMessage)[0]["cRemind"];
+							if (parseInt(count) < 4) {
 
-        const hasMessage = sqlite.select("select user_from, message from remind where user_to = ?", username);
-        if (hasMessage.length > 0) {
+								sqlite.run("insert into remind(user_from, user_to, message) values (?, ?, ?)", username, toMessage, message);
+								msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ cellEMOTE `;
 
-            hasMessage.forEach(messageData => {
+							}else msg = `${username} eu já tenho muitas mensagens pra entregar para esse ai >(`;
+						}else msg = `${username}, não conheço esse usuário, não tenho como enviar isso cellH`;
 
-                const from = messageData["user_from"];
-                const message = messageData["message"];
+						app.say(target, msg, true);
 
-                say(`${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
+					}
 
-            });
-            sqlite.run("delete from remind where user_to = ?", username);
+				}
 
-        }
+				return true;
+			case `${prefix}comandos`:
 
-        const isReturnOfAFK = sqlite.select("select message, started_at from afk where user_name = ?", username);
-        if (isReturnOfAFK.length > 0) {
+				let list = "";
+				allCommands.each((_, command) => {list += `${prefix}${command}; `});
 
-            say(`${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"])}: ${isReturnOfAFK[0]["message"]}`, true);
-            sqlite.run("delete from afk where user_name = ?", username);
+				app.say(target, `${username}, os comandos disponiveis são: ${list}`, true);
+				return true;
+			case `${prefix}comando`:
 
-            return;
+				if (toCommand.length > 0) {
 
-        }
+					let search = toCommand.shift().toLowerCase();
+					allCommands.each((description, command) => {
 
+						if (command === search || `${prefix}${command}` === search)
+							msg = `${username}, ${prefix}${command} ${description}`;
 
-        let allCommands = {
+					});
 
-            //"repetir" : `envia a repetição de uma mensagem 'n' vezes. Sintaxe: \`${prefix}repetir {quantidade} {mensagem}\` ou \`${prefix}repetir {quantidade} {mensagem}\\\``,
-            "afk": `informa que o usuário está ausente. Sintaxe: \`${prefix}afk {mensagem}\``,
-            "carta": `envia uma carta para o usuário que será recebida na proxima vez que ele mandar uma mensagem nos chats que eu estou. Sintaxe: \`${prefix}carta {usuario} {mensagem}\``,
-            "%": `retorna uma porcentagem aleatória. Sintaxe: \`${prefix}%\``,
-            "rl": `retorna uma mensagem aleátoria enviada pelo usuário no canal. Sintaxe: \`${prefix}rl\` ou \`${prefix}rl {usuario}\``,
-            "comando": `fornece mais informações sobre um comando. Sintaxe \`${prefix}comando {comando}\``,
-            "comandos": `exibe os comandos disponiveis no canal. Sintaxe: \`${prefix}comandos\``,
+				}else
+					msg = `${username}, Digite \`$comando {comando}\` para mais informações sobre cada comando. Ex: \`$ajuda $repetir\``;
 
-        };
+				app.say(target, msg);
+				return true;
 
-        // Commands test
-        switch (toCommand.shift().toLowerCase()) {
-//
-            case `${prefix}repetir`:
-                const times = Math.abs(parseInt(toCommand.shift()));
-                if (!isNaN(times) && toCommand.length > 0) {
+		}
 
-                    let toRepeat = toCommand.join(" ");
-                    if (toRepeat[toRepeat.length - 1] !== "\\") {
+	},
 
-                        toRepeat += " "
+	testAutoAnswer(rawText, username, target){
 
-                    } else {
+		let toAnalise = rawText.replaceAll("󠀀", "").deepTrim();
 
-                        toRepeat = toRepeat.slice(0, toRepeat.length - 1)
+		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem)
+		return (
+			app.testHello(toAnalise, username, target) ||
+			app.testLive(toAnalise, rawText, username, target) ||
+			app.testPlug(toAnalise, rawText, username, target) ||
+			app.testEmotes(toAnalise, rawText, username, target)
+		)
 
-                    }
+	},
+	testHello(toAnalise, username, target){
 
-                    var toSend = toRepeat.repeat(times).slice(0, 80);
-                    say(`${username}, ` + toSend);
+		if (app.regex.hello.test(toAnalise)) {
 
-                }
+			app.say(target,`${username} 👋 cellR`);
 
-                return;
-//
-            case `${prefix}piramide`:
-                const size = Math.abs(parseInt(toCommand.shift()));
-                if (!isNaN(size) && toCommand.length > 0 && channel_name != "cellbit") {
+			return true;
+		}else return false;
 
-                    let toRepeat = toCommand.join(" ");
+	},
+	testLive(toAnalise, rawText, username, target){
 
+		if (app.regex.lives.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
-                    toRepeat += " ";
+			app.say(target,`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
 
-                    let sizeinit = 0;
-                    while (sizeinit <= size) {
-                        say(toRepeat.repeat(sizeinit), false, false);
-                        sizeinit++;
-                    }
-                    sizeinit = size - 1;
-                    while (sizeinit >= 0) {
-                        say(toRepeat.repeat(sizeinit), false, false);
-                        sizeinit--;
-                    }
+			return true;
+		}else return false;
 
-                }
+	},
+	testPlug(toAnalise, rawText, username, target){
 
-                return;
-//
-            case `${prefix}%`:
-                let tmsg = toCommand.join(" ");
-                if (toLookfor.contains("AYAYA") || toLookfor.contains("carlarai"))
-                    say(`${username}, ${randomInt(80, 100)}% AYAYA`);
-                else
-                    say(`${username}, ${randomInt(0, 100)}% Thonk`);
-                return;
-//
+		if (app.regex.plug.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
-            case `${prefix}love`:
-                var lovepercentage = [
-                    `${randomInt(70, 100)}% love Pog ❤ `,
-                    `${randomInt(40, 70)}% love cellA`,
-                    `${randomInt(20, 40)}% love :| TeaTime`,
-                    `${randomInt(0, 20)}% love cellH 💔 `,
-                ];
-                let targetlove = toCommand.join(" ");
-                if (`${username}` == "nnoel")
-                    say(`${username} and ` + targetlove + ` ${randomInt(70, 100)}% love Pog ❤ `);
-                else if (`${username}` == "bhaskarai" && targetlove == "carlamorena" || `${username}` == "carlamorena" && targetlove == "bhaskarai")
-                    say(`${username} and ` + targetlove + ` 100% love 💓 😍`);
-                else
-                    say(`${username} and ` + targetlove + ` ` + lovepercentage[randomInt(0, lovepercentage.length - 1)]);
-                return;
+			app.say(target,`${username} plug.dj/-5321101498343942054 pepeJAM`);
 
-            case `${prefix}afk`:
+			return true;
+		}else return false;
 
-                let message;
-                if (toCommand.length > 0) {
+	},
+	testEmotes(toAnalise, rawText, username, target){
 
-                    message = toCommand.join(" ");
+		if (
 
-                } else {
+			rawText.indexOf("?") !== -1 &&
+			!app.regex.testForFake.test(rawText) &&
+			app.regex.emotes.test(toAnalise)
 
-                    message = "sem mensagem? :z"
+		) {
 
-                }
-                sqlite.run("insert into afk(user_name, message, started_at) values(?, ?, CURRENT_TIMESTAMP)", username, message);
+			app.say(target, `${username} escreve !emotes no chat pra saber como funcionam os emotes :)`, true);
+			app.say(target, `${username} ou !mobile se você estiver no celular :z`, true);
 
-                say(`o ${username} está afk agora :z 💤 `, true);
+			return true;
+		}else return false;
 
-                return;
-            case `${prefix}rl`:
+	},
 
-                let userToSearch;
-                if (toCommand.length > 0) {
-                    userToSearch = toCommand.shift().toLowerCase();
-                } else {
-                    userToSearch = username;
-                }
+	onConnect(addr, port) {
 
-                // noinspection SqlResolve
-                let ma = sqlite.select(`SELECT message, sended_at
-                                        FROM message_on_channel
-                                        WHERE channel_name = ?
-                                          and user_name = ?
-                                          and _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_)
-                                                                           FROM message_on_channel
-                                                                           WHERE channel_name = ?
-                                                                             and user_name = ?))
-                                        LIMIT 1`, channel_name, userToSearch, channel_name, userToSearch);
-                if (ma.length > 0) {
+		console.log(`* Connected to ${addr}:${port}`);
 
-                    let message = ma[0]["message"];
+	},
+	onMessage(target, context, rawText, self){
 
-                    let date = new Date(ma[0]["sended_at"] + " GMT");
+		// Set Vars
+		const channel_name  = target.replace("#", "");
+		const displayName   = context["display-name"];
+		const username      = context["username"];
+		const userID        = context["user-id"];
+		const messageID     = context["id"];
+		const messageType   = context["message-type"];
+		const isMod         = context["mod"];
+		const isSubscriber  = context["subscriber"];
+		const prefix        = "$";
 
-                    let day = date.getDate() > 9 ? date.getDate() : "0" + date.getDate();
-                    let month = date.getMonth() > 9 ? date.getMonth() : "0" + date.getMonth();
-                    let hours = date.getHours() > 9 ? date.getHours() : "0" + date.getHours();
-                    let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
-                    let seconds = date.getSeconds() > 9 ? date.getSeconds() : "0" + date.getSeconds();
+		if((rawText === `${prefix}mute on` || rawText === `${prefix}mute off`) && app.masters.includes(username)){
 
-                    let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
-                    let hourFormatted = `${hours}:${minutes}`;
+			// Se for é pq é pra mutar 4Head, se não é pra desmutar 4Head
+			app.mute[channel_name] = (rawText === `${prefix}mute on`);
 
-                    say(`(${dateFormatted},${hourFormatted}) ${userToSearch}: ${message}`)
+		}
 
-                } else {
+		if (
 
-                    say(`${username} acho que eu nunca vi essa pessoa por aqui ppL `)
+			self ||
+			username === process.env.BOT_USERNAME ||
+			messageType !== "chat" ||
+			app.mute[channel_name] ||
+			app.ignore.includes(username) ||
+			app.bots.includes(username) ||
+			rawText.testBanned(channel_name, prefix)
 
-                }
+		) return;
 
-                return;
-            case `${prefix}carta`:
+		app.save_message(username, channel_name, rawText, prefix);
 
-                if (toCommand.length > 1) {
+		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem)
+		return (
 
-                    const toMessage = toCommand.shift().toLowerCase();
-                    const message = toCommand.join(" ");
-                    if (
-                        toMessage !== username &&
-                        toMessage !== process.env.BOT_USERNAME
-                    ) {
+			app.has_remind(username, target) ||
+			app.is_return_afk(username, target) ||
+			app.is_a_command(rawText, prefix, username, target) ||
+			app.testAutoAnswer(rawText, username, target)
 
-                        const userExists = sqlite.select("select name from user where name = ?", toMessage);
-                        if (userExists.length > 0) {
+		);
 
-                            const count = sqlite.select("select count(user_to) as cRemind from remind where user_to = ?", toMessage)[0]["cRemind"];
-                            if (parseInt(count) < 4) {
+	},
 
-                                sqlite.run("insert into remind(user_from, user_to, message) values (?, ?, ?)", username, toMessage, message);
-                                say(`${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ cellEMOTE `, true);
+	init(){
 
-                            } else {
+		// presets
+		app.preprocess();
+		app.autoMute();
+		sqlite.connect();
 
-                                say(`${username} eu já tenho muitas mensagens pra entregar para esse ai >(`, true);
+		// Configs
+		const username = "alinepls";
+		const password = "oauth:yace41u852lssyua5ahlck9t4icu9q";
+		const identity = {username, password};
 
-                            }
+		const channels = ["emma_lee", "cellbit", "nnoel"];
 
-                        } else {
+		app.conn = new tmi.client({identity, channels});
+		app.conn.on('connected', app.onConnect);
+		app.conn.on('message', app.onMessage);
 
-                            say(`${username}, não conheço esse usuário, não tenho como enviar isso cellH`, true);
+		console.log(`* Iniciando...`);
+		app.conn.connect();
 
-                        }
-
-                    }
-
-                }
-
-                return;
-            case `${prefix}comandos`:
-
-                let list = "";
-                allCommands.each((_, command) => {
-
-                    list += `${prefix}${command}; `
-
-                });
-                say(`${username}, os comandos disponiveis são: ${list}`, true);
-                say(`${username}, Digite \`$comando {comando}\` para mais informações sobre cada um. Ex: \`$comando $repetir\``, true);
-                return;
-            case `${prefix}comando`:
-
-                if (toCommand.length > 0) {
-
-                    let search = toCommand.shift().toLowerCase();
-                    allCommands.each((description, command) => {
-
-                        if (command === search || `${prefix}${command}` === search) {
-
-                            say(`${username}, ${prefix}${command} ${description}`)
-
-                        }
-
-                    });
-
-                } else {
-
-                    say(`${username}, Digite \`$comando {comando}\` para mais informações sobre cada comando. Ex: \`$ajuda $repetir\``);
-
-                }
-                return;
-
-            case `${prefix}spam`:
-                const toSpam = toCommand.join(" ");
-                const spamallowed = ["nnoel", "liriapatin", "bhaskarai"];
-                spamallowed.each(sall => {
-                    if (toSpam.length > 0 && `${username}` == sall) {
-
-                        let count = 0;
-                        let interval = setInterval(() => {
-
-                            say(toSpam, false, false);
-                            count++;
-                            if (count === 25) {
-                                clearInterval(interval);
-                            }
-
-                        }, 100);
-
-                    }
-                });
-                break;
-
-        }
-        if (toCommand.shift() == `${prefix}turnoff`) {
-              const turnoffallowed = ["nnoel", "liriapatin", "bhaskarai"];
-              turnoffallowed.each(toff => {
-                  if (`${username}` == toff){
-                    say (`:Z . o O ( :Z 💤 ) `)
-                      process.exit();
-                    }
-              });
-              return;
-        }
-
-        // Set Vars
-        const saudacao = ["eae", "oi","olá", "bom dia", "boa tarde", "boa noite", "tchau", "flw", "xau", "hi"];
-        const names = ["chat", "aline", "alinepls"];
-
-        if (channel_name === "liriapatin") {
-
-            names.push("patin", "liriapatin");
-
-        }
-
-        // Arbitrary phrases test
-        flagged = saudacao.each(toTest => {
-
-            return names.each(name => {
-
-                if (toAnalise.contains(`${toTest} ${name}`, false)) {
-
-                    setTimeout(function () {
-                        say(`${toTest} ${username} cellR`);
-                    }, 900);
-
-                    return true;
-
-                }
-
-            })
-
-        });
-        if (flagged) return;
-
-
-        const anotherBots = [
-            "dontpinghaxk",
-            "mobot",
-            "priestbot",
-            "nightbot",
-            "phantombot",
-            "streamelements",
-            "liriabot",
-            "streamlabs"
-        ];
-        const answers = [
-            "por que você está falando o nome dele? AYAYAWeird",
-            "por que insistem em falar dele? KujoThump ",
-            "SAY THAT NAME ONE MORE TIME KarenGun ",
-            "menciona esse nome de novo pra eu testar uma coisa KarenGun",
-            "what you said? KarenGun ",
-            "eu não sou suficiente pra você? KarenShock ",
-            "this name KujoBaka ",
-            "I'm a joke for you? AYAYAWeird",
-            "de quem você esta falando? KujoBaka "
-        ];
-
-        flagged = anotherBots.each(botName => {
-            if (toAnalise.contains(botName, false) && channel_name != "cellbit") {
-
-                say(`${username}, ` + answers[randomInt(0, answers.length - 1)]);
-                return true;
-
-            }
-
-        });
-        if (flagged) return;
-
-
-        //tem live
-        const pepegater = ["kd", "cade", "tem", "qndo", "quando", "vai", "cde", "qando", "tm", "que","te", "onde", "ta","comeca","comecar","hj","hoje","amanha"];
-
-
-        flagged = pepegaTarget.each(pe => {
-
-            pepegater.each(pg => {
-
-                    if (toAnalise.removeAccents().contains(pg + " " + pe, false)
-                        && rawText.indexOf("?") !== -1) {
-
-                        setTimeout(function () {
-                            say(`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
-                        }, 2000);
-
-
-                        return true;
-
-                    }
-
-                })
-
-        });
-        if (flagged) return;
-
-
-
-        const plugquestion = ["link do plug","ouvindo musica"];
-
-        plugquestion.each(pq => {
-
-          if (toAnalise.contains(pq, false)) {
-
-                setTimeout(function () {
-                  say(`${username} plug.dj/-5321101498343942054 pepeJAM`);
-                }, 900);
-
-
-                return true;
-
-              }
-
-        });
-
-
-
-
-
-
-        //
-        //
-        //
-
-//
-//
-        //Verifica se existe algum emote que indique falsa pergunta
-        const emotesToFake = [":D", ":\\)", ";\\)", "R\\)", ":\\(", ":Z", ">\\(", ":O", ":P", ":z", ":\\|", ":\\/","cellPP","cellX",
-        "cellTa","cellOi","cellNormie", "AYAYA", "cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "Pepega"];
-
-        const rFake = new RegExp("(" + emotesToFake.join("|") + ")");
-        const rCellGo = new RegExp("\\b(" + cellGOEmotes.join("|") + ")\\b", "i");
-
-
-        if(
-
-            rawText.indexOf("?") !== -1 &&
-            !rFake.test(rawText) &&
-            rCellGo.test(toAnalise)
-
-        ){
-
-            setTimeout(function () {
-
-                say(`${username} escreve !emotes no chat pra saber como funcionam os emotes :)`, true);
-                say(`${username} ou !mobile se você estiver no celular :z`, true);
-
-            }, 1800);
-            return;
-
-        }
-
-//
-//
-//
-//
-//
-
-
-
-
-
-
-
-
-
-
-        const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA",
-        "cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf","cellWD","cellX","cellZ","cellPP","cellTa"];
-/*
-        const pepega1 = ["se a carapuca serve", "se a carapuca serve!"];
-        const pepega2 = ["ae repete", "ae? repete!","ah e repete", "ah e? repete!"];
-
-        flagged = pepega1.each(pp1 => {
-
-            pepega2.each(pp2 => {
-
-                if (toAnalise.contains(pp1, false))
-                    setTimeout(function () {
-                        say("Pepega AÉ? REPETE!");
-                    }, 800);
-
-                else if (toAnalise.contains(pp2, false))
-                    setTimeout(function () {
-                        say("Pepega SE A CARAPUÇA SERVE");
-                    }, 800);
-
-                return true;
-
-            })
-
-        });
-        if (flagged) return;
-        */
-
-        /*
-        math command system
-
-            const qntoe = [
-              "{replace} quanto e" + $(urlfetch http://twitch.center/customapi/math?expr=$(querystring)),
-              "{replace} quanto da"+ $(urlfetch http://twitch.center/customapi/math?expr=$(querystring)),
-              "{replace} quanto fica" + $(urlfetch http://twitch.center/customapi/math?expr=$(querystring))
-            ]
-
-            flagged = names.each(name => {
-
-              qntoe.each(qnto => {
-
-              if(toAnalise.contains(name.replaceAll("{replace}", qnto)) && rawText.indexOf("?") !== -1){
-
-                return true;
-
-                }
-
-              })
-
-            });
-            if(flagged) return;
-        */
-
-
-        const alinefeliz = ["alinepls", "aline", "alienpls"];
-        const smilephrase = [
-            "{replace} {replace2}",
-            "{replace2} {replace}"
-        ];
-
-        alinefeliz.each(al => {
-            smiles.each(sm => {
-                smilephrase.each(smp => {
-                    if (toLookfor.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", sm))) {
-                        setTimeout(function () {
-                            say(`${username} ` + sm);
-                        }, 600);
-
-                        return true;
-
-                    } else if (toLookfor.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", "R)"))) {
-                        setTimeout(function () {
-                            say(`${username} R) arrrg`);
-                        }, 600);
-
-                        return true;
-                    }
-
-                })
-            })
-        });
-    }
+	}
 
 };
-//
-//
-// Cria uma lista com todas as possibilidades no inicio do aplicativo
-const cellGOEmotes = [];
 
-const cellGOEmotes1 = ["ve os {replace}", "ver os {replace}", "vejo os {replace}", "vejo esses {replace}", "como que ve esses {replace}", "onde que ve esses {replace}", "baixo essa {replace}","o que e {replace}", "consigo essa {replace}", "baixa essa {replace}", "baixa a {replace}", "e essa {replace}","extensao dos {replace}","extencao dos {replace}"];
-const cellGOEmotes2 = ["emotes", "emote", "emoji", "emoticon", "emojis", "emoticons", "emtes", "extensao","extencao", "extenção", "extensão", "bbtv", "bttv"];
-
-cellGOEmotes1.each(c1 => {
-    cellGOEmotes2.each(c2 => {
-
-        cellGOEmotes.push(c1.replaceAll("{replace}", c2).removeAccents().removeRepeats().trim())
-
-    })
-});
-
-const pepegaTarget = [];
-const pepegaTarget2 = ["live", "lives","laive", "streams", "stream", "live stream", "celbit", "cellbo", "celbinho", "cel", "celbitos", "celbitinho", "zerbit", "lvie", "liev"];
-const pepegaTarget1 = ["a {replace}","tem {replace}","o {replace}","{replace} hoje","{replace} hj","e a {replace}","e as {replace}","sao as {replace}","comeca a {replace}","comeca as {replace}","comecam as {replace}","horas tem {replace}","horas e a {replace}","hora e a {replace}","hora tem {replace}"];
-pepegaTarget1.each(c1 => {
-    pepegaTarget2.each(c2 => {
-
-        pepegaTarget.push(c1.replaceAll("{replace}", c2).removeAccents().removeRepeats().trim())
-
-    })
-});
-//
-//
-
-
-
-
-/*
-    //autoturnoff when stream starts 1
-getJSON('https://api.twitch.tv/helix/streams/ecgfmopuk1i53vofoflwbbvwnxfxvk?user_name=cellbit ')
-.then(function(response) {
-
-  if (channel["cellbit"] !== null) {
-    say (`:Z . o O ( :Z 💤 ) `)
-    process.exit();
-  }
-
-}).catch(function(error) {
-  console.log(error);
-});
-*/
-
-    //autoturnoff when stream starts 2
-const fetch = require("node-fetch");
-
-
-setInterval(autoturnoff1,20000);
-
-function autoturnoff1(){
-fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit',
-{ method: 'get', headers: { 'Client-Id' : 'ecgfmopuk1i53vofoflwbbvwnxfxvk' }, })
-.then(res => res.json() )
-.then(res => {
-
-  if (res.data.length > 0){
-
-    app.blockedOnCellbit = true;
-
-  } else{
-
-    app.blockedOnCellbit = false;
-
-  }
-
-
-});
-}
-
-
-
-
-sqlite.connect();
-const channels = sqlite.select("select name from channel").map(data => data.name);
-
-// Configs
-const messagesRateLimit = process.env.MESSAGES_RATE_LIMIT;
-const client = new tmi.client({
-    identity: {
-
-        username: "alinepls",
-        password: "oauth:yace41u852lssyua5ahlck9t4icu9q"
-
-    },
-    channels: [
-        "liriapatin", "nnoel", "cellbit"
-    ]
-});
-
-client.on('connected', app.onConnect);
-client.on('message', app.onMessage);
-
-console.log(`* Iniciando...`);
-client.connect();
-
-
-
-
-// const math = require("mathjs");
-//
-// let exp = "2 + 4";
-// try{
-//
-//     console.log(math.evaluate(exp));
-//
-// }catch(err){
-//
-//     console.log("invalido");
-//
-// }
+app.init();

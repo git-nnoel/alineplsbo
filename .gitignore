@@ -1,7 +1,6 @@
 node_modules
 .idea
 .env
-db/liria.db
 yarn.lock
 package-lock.json
 sec.js
