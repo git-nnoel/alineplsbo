@@ -12,11 +12,12 @@ const app = {
 	messageRateCounter: 0,
 	sleepTime: false,
 	mute: {},
+  liveon: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstar", "crayzerbr"],
 	cute_messages : [
-		"oi chat, ja disse que amo vocês?",
+		"oi chat, ja disse que amo vocês? :)",
 		"@chat vocês são muitos fofos cellFofo",
 		"@chat cellTa 📱 ⚡ ❓ ",
 		"AYAYA meu kokoro artificial faz doki doki por vocês chat",
@@ -30,6 +31,7 @@ const app = {
 		"digita !tutorial se você for novo aqui :z TeaTime",
 		"cellPP @chat, me da um gifto sub? :D",
 		"AYAYA where's my weeb friends❓",
+    "AYAYA any wibbies here❓",
 		"💪 cellGr digita \"$love alinepls\" agora, vou quebrar quem der menos de 80%",
 		"cellTa como as cores num retrato o tempo insiste em desbotar. vem ca chat, me passa seu celular 📱 ⚡ ❓",
 		"cellTa esse cheiro maravilhoso é de vocês chat?",
@@ -42,7 +44,7 @@ const app = {
 		"cellPP é aqui a live do alhoo?",
 		"AYAYA chat, vamo ve anime ❓ ",
 		"cellFofo @chat, meu amor por vocês é maior que o amor do blublu por persona",
-		"cellGr cheguei, cade o spam de amor?",
+		"cellGr cheguei, cade o spam de amor? cellA",
 		"cellPP @mods, como que compra essa espadinha do lado do nome?",
 		"cellGr 👉 🚪 quem não me ama",
 		":/ chat, perdão por perturbar vocês, minha twitch ta bugada. podem me dizer que horas vocês vão declarar seu amor por mim? cellFofo",
@@ -145,7 +147,7 @@ const app = {
 
 			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': 'ecgfmopuk1i53vofoflwbbvwnxfxvk'}})
 				.then(res => res.json())
-				.then(res => {app.mute.cellbit = (res.data && res.data.length > 0)})
+				.then(res => {app.liveon.cellbit = (res.data && res.data.length > 0)})
 				.catch(err => {});
 
 		}, 20000);
@@ -207,7 +209,7 @@ const app = {
 				const from = messageData["user_from"];
 				const message = messageData["message"];
 
-				app.say(target, `${from} > ${username}: ${message}`, true);
+				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
 
 			});
 			sqlite.run("delete from remind where user_to = ?", username);
@@ -280,9 +282,8 @@ const app = {
 
 				return true;
 			case `${prefix}piramide`:
-				return;
 				const size = Math.abs(parseInt(toCommand.shift()));
-				if (!isNaN(size) && toCommand.length > 0) {
+				if (!isNaN(size) && toCommand.length > 0 && channel_name !== "cellbit") {
 
 					let toRepeat = toCommand.join(" ");
 
@@ -304,11 +305,8 @@ const app = {
 
 				return true;
 			case `${prefix}spam`:
-				return;
 				const toSpam = toCommand.join(" ");
-				const spamallowed = ["nnoel", "liriapatin", "bhaskarai"];
-				spamallowed.each(sall => {
-					if (toSpam.length > 0 && `${username}` == sall) {
+					if (toSpam.length > 0 && channel_name !== "cellbit") {
 
 						let count = 0;
 						let interval = setInterval(() => {
@@ -322,7 +320,6 @@ const app = {
 						}, 100);
 
 					}
-				});
 				return true;
 			// Dead
 
@@ -429,12 +426,11 @@ const app = {
 
 					msg = `[${dateFormatted} - ${hourFormatted}] ${user}: ${message}`;
 
-				} else
-					msg = `${username} acho que eu nunca vi essa pessoa por aqui ppL `;
+          app.say(target, msg);
 
-				app.say(target, msg);
-
+				}
 				return true;
+
 			case `${prefix}carta`:
 
 				if (toCommand.length > 1) {
@@ -511,7 +507,7 @@ const app = {
 
 		let toAnalise = rawText.replaceAll("󠀀", "").deepTrim();
 
-		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem)
+		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem) (cellhmm faz sentido)
 		return (
 			app.testHello(toAnalise, username, target) ||
 			app.testLive(toAnalise, rawText, username, target) ||
@@ -594,6 +590,8 @@ const app = {
 
 		}
 
+    if (channel_name == "cellbit" && app.liveon[channel_name]) return;
+
 		if (
 
 			self ||
@@ -608,7 +606,7 @@ const app = {
 		app.save_message(username, channel_name, rawText, prefix);
 		if(app.mute[channel_name]) return;
 
-		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem)
+		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem) (cellhmm faz sentido)
 		return (
 
 			app.has_remind(username, target) ||
