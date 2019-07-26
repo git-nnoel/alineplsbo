@@ -207,7 +207,7 @@ const app = {
 				const from = messageData["user_from"];
 				const message = messageData["message"];
 
-				app.say(target, `${from} > ${username}: ${message}`, true);
+				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
 
 			});
 			sqlite.run("delete from remind where user_to = ?", username);
