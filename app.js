@@ -498,7 +498,9 @@ const app = {
 		const timer = randomInt(3600000, 10800000);
 		setTimeout(() => {
 
-			app.say("#cellbit", app.cute_messages[randomInt(0, app.cute_messages.length - 1)]);
+			if(!app.mute.cellbit)
+				app.say("#cellbit", app.cute_messages[randomInt(0, app.cute_messages.length - 1)]);
+
 			app.randomAutoAnswer();
 
 		}, timer);
