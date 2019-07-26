@@ -104,41 +104,23 @@ const app = {
 
 		const plug = ["link do plug", "ouvindo musica"];
 
+    const alineinteractions = [];
+		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa"];
+		const alinefeliz = ["alinepls", "aline", "alienpls"];
+    alinefeliz.each(al => {
+      smiles.each(sm => {
+        alineinteractions.push(`${sm} ${al}`);
+        alineinteractions.push(`${al} ${sm}`);
+      });
+    });
 
-		// const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA",
-		// 	"cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa"];
-		// const alinefeliz = ["alinepls", "aline", "alienpls"];
-		// const smilephrase = [
-		// 	"{replace} {replace2}",
-		// 	"{replace2} {replace}"
-		// ];
-		// alinefeliz.each(al => {
-		// 	smiles.each(sm => {
-		// 		smilephrase.each(smp => {
-		// 			if (toAnalise.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", sm))) {
-		// 				setTimeout(function () {
-		// 					app.say(`${username} ` + sm);
-		// 				}, 600);
-		//
-		// 				return true;
-		//
-		// 			} else if (toAnalise.contains(smp.replaceAll("{replace}", al).replaceAll("{replace2}", "R)"))) {
-		// 				setTimeout(function () {
-		// 					app.say(`${username} R) arrrg`);
-		// 				}, 600);
-		//
-		// 				return true;
-		// 			}
-		//
-		// 		})
-		// 	})
-		// });
-
-		app.regex.testForFake  = new RegExp("(" + fakeTest.join("|") + ")");
-		app.regex.lives        = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
-		app.regex.emotes       = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
-		app.regex.hello        = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
-		app.regex.plug         = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
+		app.regex.testForFake             = new RegExp("(" + fakeTest.join("|") + ")");
+		app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
+		app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
+		app.regex.hello                   = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
+		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
+    app.regex.smiles                  = new RegExp("(" + fakeTest.join("|") + ")");
+    app.regex.alineinteractions       = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
 
 	},
 	autoMute(){
@@ -512,7 +494,8 @@ const app = {
 			app.testHello(toAnalise, username, target) ||
 			app.testLive(toAnalise, rawText, username, target) ||
 			app.testPlug(toAnalise, rawText, username, target) ||
-			app.testEmotes(toAnalise, rawText, username, target)
+			app.testEmotes(toAnalise, rawText, username, target) ||
+      app.testInteraction(toAnalise, rawText, username, target)
 		)
 
 	},
@@ -563,6 +546,26 @@ const app = {
 		}else return false;
 
 	},
+  testInteraction(toAnalise, rawText, username, target){
+
+    if (
+
+      app.regex.alineinteractions.test(rawText)
+
+    ){
+
+      app.smiles.each(sm => {
+
+      if(rawText.contains(sm))
+      app.say(target, `${username} ` + sm, true);
+
+      return true;
+    });
+
+      return true;
+		}else return false;
+
+  },
 
 	onConnect(addr, port) {
 
