@@ -39,6 +39,7 @@ const app = {
 		"cellGr digitem \"$love alinepls\" agora. ban em quem der menos que 80%",
 		"cellFofo @chat, o unico ataque dos titans que conheço é meu amor invadindo seu coração 💜",
 		"cellTa @chat você ja é vip no meu coração",
+		"cellPP é aqui a live do alhoo?",
 		"AYAYA chat, vamo ve anime ❓ ",
 		"cellFofo @chat, meu amor por vocês é maior que o amor do blublu por persona",
 		"cellGr cheguei, cade o spam de amor?",
@@ -495,11 +496,11 @@ const app = {
 
 	randomAutoAnswer(){
 
-		const timer = randomInt(3600000, 10800000);
+		const timer = randomInt(1800000, 3600000);
 		setTimeout(() => {
 
 			if(!app.mute.cellbit)
-				app.say("#cellbit", app.cute_messages[randomInt(0, app.cute_messages.length - 1)]);
+				app.say("#cellbit", app.cute_messages[randomInt(0, app.cute_messages.length - 1)], true);
 
 			app.randomAutoAnswer();
 
