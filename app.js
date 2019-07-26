@@ -599,7 +599,6 @@ const app = {
 			self ||
 			username === process.env.BOT_USERNAME ||
 			messageType !== "chat" ||
-			app.mute[channel_name] ||
 			app.ignore.includes(username) ||
 			app.bots.includes(username) ||
 			rawText.testBanned(channel_name, prefix)
@@ -607,6 +606,7 @@ const app = {
 		) return;
 
 		app.save_message(username, channel_name, rawText, prefix);
+		if(app.mute[channel_name]) return;
 
 		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem)
 		return (
