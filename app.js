@@ -13,7 +13,7 @@ const app = {
 	sleepTime: false,
 	mute: {nnoel : false, cellbit : false},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
-	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "liriabot", "alinepls"],
+	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstar", "crayzerbr"],
 
 	regex : {},
@@ -321,10 +321,9 @@ const app = {
 
 				else if (username === "dinokat" && (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin"))
 					msg = `${username} :z http://prntscr.com/ojpjr6`;
-
-				// vai la beijar a satanya velho filho da puta cellGr
+					// vai la beijar a satanya velho filho da puta cellGr
 				else if (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin")
-					msg = `0% love cellH 💔`;
+					msg = `${username} & ${lTarget}: 0% love cellH 💔`;
 
 				else
 					msg = `${username} & ${lTarget}: ${percent[randomInt(0, percent.length - 1)]}`;
