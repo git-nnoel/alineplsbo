@@ -9,6 +9,7 @@ const app = {
 
 	conn : null,
 
+	lastmsg: " ",
 	messageRateCounter: 0,
 	sleepTime: false,
 	mute: {},
@@ -83,7 +84,7 @@ const app = {
 		app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
 		app.regex.hello                   = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
 		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
-	    app.regex.names                   = new RegExp("(" + names.join("|") + ")");
+	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
 		app.smiles                        = smiles;
 
 	},
@@ -100,7 +101,7 @@ const app = {
 
 	},
 
-	say(target, msg, retain = false, sleep = true){
+	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
 
 		setTimeout(() => {
 
@@ -108,25 +109,44 @@ const app = {
 
 				if(!msg.testBanned(target.replace("#", ""), "$")){
 
-					app.messageRateCounter++;
-					app.sleepTime = true;
 
-					app.conn.say(target, msg);
+					if(timeouttime !== 0){
+						app.messageRateCounter++;
+						app.sleepTime = true;
+					}
 
-					setTimeout(() => {
-						app.messageRateCounter--
-					}, 20000);
-					setTimeout(() => {
-						app.sleepTime = false
-					}, 2000);
+					console.log("1");
+					if (msg !== app.lastmsg) {
+    				app.lastmsg = msg;
+  					app.conn.say(target, msg);
+					}
+					else if (msg === app.lastmsg) {
+        		msg = msg + " 󠀀 ";
+        		app.conn.say(target, msg);
+      			app.lastmsg = msg + " 󠀀 "
+     			}
+
+
+
+
+					if (timeouttime !== 0){
+
+						setTimeout(() => {
+							app.messageRateCounter--
+						}, 20000);
+						setTimeout(() => {
+							app.sleepTime = false
+						}, 2000);
+
+					}
 
 				}
 
 			}
 			else if (retain)
-				setTimeout(() => {app.say(target, msg, retain)}, 1000);
+				setTimeout(() => {app.say(target, msg, retain)}, timeouttime);
 
-		}, 1000);
+		}, timeouttime);
 
 	},
 
@@ -244,12 +264,12 @@ const app = {
 
 						let sizeinit = 0;
 						while (sizeinit <= size) {
-							app.say(target, toRepeat.repeat(sizeinit), false, false);
+							app.say(target, toRepeat.repeat(sizeinit), false, false, 0);
 							sizeinit++;
 						}
 						sizeinit = size - 1;
 						while (sizeinit >= 0) {
-							app.say(target, toRepeat.repeat(sizeinit), false, false);
+							app.say(target, toRepeat.repeat(sizeinit), false, false, 0);
 							sizeinit--;
 						}
 
