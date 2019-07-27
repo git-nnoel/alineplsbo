@@ -709,7 +709,7 @@ const app = {
 		const identity = {username, password};
 
 		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
-		const channels = process.env.dev === "1" ? ["alinepls"] : ["emma_lee", "cellbit", "nnoel"];
+		const channels = process.env.dev === "1" ? ["alinepls"] : ["emma_lee", "cellbit", "nnoel", "carlamorena"];
 
 		app.conn = new tmi.client({identity, channels});
 		app.conn.on('connected', app.onConnect);
