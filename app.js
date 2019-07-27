@@ -463,7 +463,7 @@ const app = {
 
 		if (app.regex.hello.test(toAnalise)) {
 
-			app.say(target,`${username} 👋 cellR`);
+			app.say(target,`${username} cellOi cellR`);
 
 			return true;
 		}else return false;
