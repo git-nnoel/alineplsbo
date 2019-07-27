@@ -91,7 +91,7 @@ const app = {
 
 		setInterval(() => {
 
-			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': 'ecgfmopuk1i53vofoflwbbvwnxfxvk'}})
+			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': process.env.API_KEY}})
 				.then(res => res.json())
 				.then(res => {app.mute.cellbit = (res.data && res.data.length > 0)})
 				.catch(err => {});
@@ -704,8 +704,8 @@ const app = {
 		sqlite.connect();
 
 		// Configs
-		const username = "alinepls";
-		const password = "oauth:yace41u852lssyua5ahlck9t4icu9q";
+		const username = process.env.BOT_USERNAME;
+		const password = process.env.BOT_PASSWORD;
 		const identity = {username, password};
 
 		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
