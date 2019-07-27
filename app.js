@@ -14,7 +14,7 @@ const app = {
 	mute: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
-	ignore : ["necronstar", "crayzerbr"],
+	ignore : ["necronstars", "crayzerbr"],
 	regex : {},
 
 	pCount : {},
@@ -709,7 +709,7 @@ const app = {
 		const identity = {username, password};
 
 		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
-		const channels = process.env.dev === "1" ? ["nnoel"] : ["emma_lee", "cellbit", "carlamorena"];
+		const channels = process.env.devmode === "true" ? process.env.devChannels.split("|") : process.env.prodChannels.split("|");
 
 		app.conn = new tmi.client({identity, channels});
 		app.conn.on('connected', app.onConnect);
