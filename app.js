@@ -301,19 +301,19 @@ const app = {
 
 				let lTarget = toCommand.join(" ");
 				if (username === "nnoel")
-					msg = `${username} & ${lTarget}: ${randomInt(70, 100)}% love Pog ❤ `;
+					msg = `${username} & ${lTarget} : ${randomInt(70, 100)}% love Pog ❤ `;
 
 				else if ((username === "bhaskarai" && lTarget === "carlamorena") || (username === "carlamorena" && lTarget === "bhaskarai"))
-					msg = `${username} & ${lTarget}: 100% love 💓 😍`;
+					msg = `${username} & ${lTarget} : 100% love 💓 😍`;
 
 				else if (username === "dinokat" && (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin"))
 					msg = `${username} :z http://prntscr.com/ojpjr6`;
 					// vai la beijar a satanya velho filho da puta cellGr
 				else if (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin")
-					msg = `${username} & ${lTarget}: 0% love cellH 💔`;
+					msg = `${username} & ${lTarget} : 0% love cellH 💔`;
 
 				else
-					msg = `${username} & ${lTarget}: ${percent[randomInt(0, percent.length - 1)]}`;
+					msg = `${username} & ${lTarget} : ${percent[randomInt(0, percent.length - 1)]}`;
 
 				app.say(target, msg, true);
 				return true;
@@ -709,7 +709,7 @@ const app = {
 		const identity = {username, password};
 
 		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
-		const channels = process.env.dev === "1" ? ["alinepls"] : ["emma_lee", "cellbit", "nnoel", "carlamorena"];
+		const channels = process.env.dev === "1" ? ["nnoel"] : ["emma_lee", "cellbit", "carlamorena"];
 
 		app.conn = new tmi.client({identity, channels});
 		app.conn.on('connected', app.onConnect);
