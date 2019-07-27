@@ -136,11 +136,11 @@ const app = {
 
 	},
 
-	say(target, msg, retain = false){
+	say(target, msg, retain = false, sleep = true){
 
 		setTimeout(() => {
 
-			if (!app.sleepTime && app.messageRateCounter < 18) {
+			if ((app.messageRateCounter < 18) && ((!sleep) || (sleep && !app.sleepTime))) {
 
 				if(!msg.testBanned(target.replace("#", ""), "$")){
 
@@ -237,12 +237,15 @@ const app = {
 		};
 		let msg;
 
+		const blocked = ["cellbit"];
+
 		// Commands test
 		switch (toCommand.shift().toLowerCase()) {
 
 			// Dead
 			case `${prefix}repetir`:
-				return;
+				if(blocked.includes(channel_name)) return;
+
 				const times = Math.abs(parseInt(toCommand.shift()));
 				if (!isNaN(times) && toCommand.length > 0) {
 
@@ -258,42 +261,51 @@ const app = {
 					}
 
 					var toSend = toRepeat.repeat(times).slice(0, 80);
-					app.say(`${username}, ` + toSend);
+					app.say(target, `${username}, ` + toSend, false);
 
 				}
 
 				return true;
+			// Dead
 			case `${prefix}piramide`:
-				const size = Math.abs(parseInt(toCommand.shift()));
-				if (!isNaN(size) && toCommand.length > 0 && channel_name !== "cellbit") {
 
-					let toRepeat = toCommand.join(" ");
+				if(blocked.includes(channel_name)) return;
 
+				if(toCommand.length > 1){
 
-					toRepeat += " ";
+					const size = Math.abs(parseInt(toCommand.shift()));
+					if (!isNaN(size)) {
 
-					let sizeinit = 0;
-					while (sizeinit <= size) {
-						app.say(toRepeat.repeat(sizeinit), false);
-						sizeinit++;
-					}
-					sizeinit = size - 1;
-					while (sizeinit >= 0) {
-						app.say(toRepeat.repeat(sizeinit), false);
-						sizeinit--;
+						let toRepeat = toCommand.join(" ");
+
+						toRepeat += " ";
+
+						let sizeinit = 0;
+						while (sizeinit <= size) {
+							app.say(target, toRepeat.repeat(sizeinit), false, false);
+							sizeinit++;
+						}
+						sizeinit = size - 1;
+						while (sizeinit >= 0) {
+							app.say(target, toRepeat.repeat(sizeinit), false, false);
+							sizeinit--;
+						}
+
 					}
 
 				}
 
 				return true;
 			case `${prefix}spam`:
+				if(blocked.includes(channel_name)) return;
+
 				const toSpam = toCommand.join(" ");
-					if (toSpam.length > 0 && channel_name !== "cellbit") {
+					if (toSpam.length > 0) {
 
 						let count = 0;
 						let interval = setInterval(() => {
 
-							app.say(toSpam, false, false);
+							app.say(target, toSpam, false, false);
 							count++;
 							if (count === 25) {
 								clearInterval(interval);
@@ -303,7 +315,10 @@ const app = {
 
 					}
 				return true;
-			// Dead
+
+
+
+
 
 			case `${prefix}%`:
 				toCommand = toCommand.join(" ");
