@@ -12,7 +12,7 @@ const app = {
 	messageRateCounter: 0,
 	sleepTime: false,
 	mute: {},
-  liveon: {},
+	liveon: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstar", "crayzerbr"],
@@ -104,23 +104,26 @@ const app = {
 
 		const plug = ["link do plug", "ouvindo musica"];
 
-    const alineinteractions = [];
+	    const alineinteractions = [];
+
 		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa"];
 		const alinefeliz = ["alinepls", "aline", "alienpls"];
-    alinefeliz.each(al => {
-      smiles.each(sm => {
-        alineinteractions.push(`${sm} ${al}`);
-        alineinteractions.push(`${al} ${sm}`);
-      });
-    });
+	    alinefeliz.each(al => {
+			smiles.each(sm => {
+
+				alineinteractions.push(`${sm} ${al}`);
+				alineinteractions.push(`${al} ${sm}`);
+
+			});
+	    });
 
 		app.regex.testForFake             = new RegExp("(" + fakeTest.join("|") + ")");
 		app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
 		app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
 		app.regex.hello                   = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
 		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
-    app.regex.smiles                  = new RegExp("(" + fakeTest.join("|") + ")");
-    app.regex.alineinteractions       = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
+	    app.regex.names                   = new RegExp("(" + names.join("|") + ")");
+		app.smiles                        = smiles;
 
 	},
 	autoMute(){
@@ -500,6 +503,7 @@ const app = {
 		}, timer);
 
 	},
+
 	testAutoAnswer(rawText, username, target){
 
 		let toAnalise = rawText.replaceAll("󠀀", "").deepTrim();
@@ -510,7 +514,7 @@ const app = {
 			app.testLive(toAnalise, rawText, username, target) ||
 			app.testPlug(toAnalise, rawText, username, target) ||
 			app.testEmotes(toAnalise, rawText, username, target) ||
-      app.testInteraction(toAnalise, rawText, username, target)
+      		app.testInteraction(toAnalise, rawText, username, target)
 		)
 
 	},
@@ -561,26 +565,20 @@ const app = {
 		}else return false;
 
 	},
-  testInteraction(toAnalise, rawText, username, target){
+  	testInteraction(toAnalise, rawText, username, target){
 
-    if (
+		return app.smiles.each(sm => {
 
-      app.regex.alineinteractions.test(rawText)
+			if(rawText.contains(sm) && app.regex.names.test(toAnalise)){
 
-    ){
+				app.say(target, `${username} ` + sm, true);
+				return true;
 
-      app.smiles.each(sm => {
+			}
 
-      if(rawText.contains(sm))
-      app.say(target, `${username} ` + sm, true);
+		})
 
-      return true;
-    });
-
-      return true;
-		}else return false;
-
-  },
+	},
 
 	onConnect(addr, port) {
 
