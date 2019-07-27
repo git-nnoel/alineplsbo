@@ -4,9 +4,9 @@
   "description": "A simple chatbot for twitch chat",
   "main": "app.js",
   "scripts": {
-    "prod": "forever stop app.js; forever start app.js"
+    "prod": "forever stop app.js; forever start app.js",
+    "dev" : "dev=1 node app.js"
   },
-  "devDependencies": {},
   "dependencies": {
     "better-sqlite3": "^5.4.0",
     "dotenv": "^8.0.0",

@@ -12,7 +12,6 @@ const app = {
 	messageRateCounter: 0,
 	sleepTime: false,
 	mute: {},
-	liveon: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstar", "crayzerbr"],
@@ -92,7 +91,7 @@ const app = {
 
 			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': 'ecgfmopuk1i53vofoflwbbvwnxfxvk'}})
 				.then(res => res.json())
-				.then(res => {app.liveon.cellbit = (res.data && res.data.length > 0)})
+				.then(res => {app.mute.cellbit = (res.data && res.data.length > 0)})
 				.catch(err => {});
 
 		}, 20000);
@@ -454,7 +453,6 @@ const app = {
 
 		let toAnalise = rawText.replaceAll("󠀀", "").deepTrim();
 
-		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem) (cellhmm faz sentido)
 		return (
 			app.testHello(toAnalise, username, target) ||
 			app.testLive(toAnalise, rawText, username, target) ||
@@ -551,13 +549,12 @@ const app = {
 
 		}
 
-    if (channel_name == "cellbit" && app.liveon[channel_name]) return;
-
-		if (
+		if(
 
 			self ||
 			username === process.env.BOT_USERNAME ||
 			messageType !== "chat" ||
+			app.mute[channel_name] ||
 			app.ignore.includes(username) ||
 			app.bots.includes(username) ||
 			rawText.testBanned(channel_name, prefix)
@@ -565,9 +562,7 @@ const app = {
 		) return;
 
 		app.save_message(username, channel_name, rawText, prefix);
-		if(app.mute[channel_name]) return;
 
-		// Esta assim pq se um der verdadeiro ele não vai para o proximo (funcionamento interno da linguagem) (cellhmm faz sentido)
 		return (
 
 			app.has_remind(username, target) ||
@@ -591,7 +586,8 @@ const app = {
 		const password = "oauth:yace41u852lssyua5ahlck9t4icu9q";
 		const identity = {username, password};
 
-		const channels = ["emma_lee", "cellbit", "nnoel"];
+		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
+		const channels = process.env.dev === "1" ? ["alinepls"] : ["emma_lee", "cellbit", "nnoel"];
 
 		app.conn = new tmi.client({identity, channels});
 		app.conn.on('connected', app.onConnect);
