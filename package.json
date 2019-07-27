@@ -5,7 +5,6 @@
   "main": "app.js",
   "scripts": {
     "prod": "forever stop app.js; forever start app.js",
-    "dev" : "dev=1 node app.js",
     "stop" :  "forever stop app.js"
   },
   "dependencies": {
