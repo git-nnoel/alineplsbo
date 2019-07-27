@@ -206,7 +206,6 @@ const app = {
 		// Commands test
 		switch (toCommand.shift().toLowerCase()) {
 
-			// Dead
 			case `${prefix}repetir`:
 				if(blocked.includes(channel_name)) return;
 
@@ -230,7 +229,6 @@ const app = {
 				}
 
 				return true;
-			// Dead
 			case `${prefix}piramide`:
 
 				if(blocked.includes(channel_name)) return;
@@ -279,10 +277,6 @@ const app = {
 
 					}
 				return true;
-
-
-
-
 
 			case `${prefix}%`:
 				toCommand = toCommand.join(" ");
@@ -342,28 +336,32 @@ const app = {
 				else
 					uTarget = username;
 
-				// noinspection SqlResolve
-				let dResult = sqlite.select(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by random() limit 1`, [channel_name, uTarget]);
-				if (dResult.length > 0) {
+				if (!app.bots.includes(uTarget)) {
 
-					let message = dResult[0]["message"];
+					// noinspection SqlResolve
+					let dResult = sqlite.select(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by random() limit 1`, [channel_name, uTarget]);
+					if (dResult.length > 0) {
 
-					let date = new Date(dResult[0]["sended_at"] + " GMT");
+						let message = dResult[0]["message"];
 
-					let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
-					let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
-					let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
-					let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
+						let date = new Date(dResult[0]["sended_at"] + " GMT");
 
-					let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
-					let hourFormatted = `${hours}:${minutes}`;
+						let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
+						let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
+						let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
+						let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
 
-					msg = `[${dateFormatted} - ${hourFormatted}] ${uTarget}: ${message}`;
+						let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
+						let hourFormatted = `${hours}:${minutes}`;
 
-				} else
-					msg = `${username} acho que eu nunca vi essa pessoa por aqui ppL `;
+						msg = `[${dateFormatted} - ${hourFormatted}] ${uTarget}: ${message}`;
 
-				app.say(target, msg);
+					} else
+						msg = `${username} acho que eu nunca vi essa pessoa por aqui ppL `;
+
+					app.say(target, msg);
+
+				}
 
 				return true;
 			case `${prefix}rq`:
@@ -391,17 +389,13 @@ const app = {
 
 				}
 				return true;
-
 			case `${prefix}carta`:
 
 				if (toCommand.length > 1) {
 
 					const toMessage = toCommand.shift().toLowerCase();
 					const message = toCommand.join(" ");
-					if (
-						!app.ignore.includes(toMessage) &&
-						!app.bots.includes(toMessage)
-					) {
+					if (!app.bots.includes(toMessage)) {
 
 						const userExists = sqlite.select("select name from user where name = ?", toMessage);
 						if (userExists.length > 0) {
@@ -422,6 +416,7 @@ const app = {
 				}
 
 				return true;
+
 			case `${prefix}comandos`:
 
 				let list = "";
