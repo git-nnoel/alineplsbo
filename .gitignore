@@ -5,3 +5,4 @@ yarn.lock
 package-lock.json
 sec.js
 test.js
+db/aline.db
