@@ -17,6 +17,8 @@ const app = {
 	ignore : ["necronstar", "crayzerbr"],
 	regex : {},
 
+	pCount : {},
+
 	preprocess(){
 
 		const emotes = [];
@@ -524,6 +526,130 @@ const app = {
 
 	},
 
+	testPyramid(rawText, username, target){
+
+		const channel_name = target.replace("#", "");
+
+		const pTest = rawText.split(" ");
+		if(pTest.length > 0){
+
+			const isAllSame = pTest.reduce((all, att) => all & (att === pTest[0]) , true);
+
+			if(isAllSame){
+
+				if(
+					pTest.length === 1 &&
+					(
+						!app.pCount[channel_name] ||
+						(app.pCount[channel_name] && app.pCount[channel_name].step !== 2)
+					)
+				){
+
+					app.pCount[channel_name] = {
+						members : [username],
+						length : 1,
+						step : 1,
+						pChar : pTest[0]
+					}
+
+				}
+
+				else if(app.pCount[channel_name]){
+
+					if(app.pCount[channel_name].pChar === pTest[0]){
+
+						if(
+
+							app.pCount[channel_name].step + 1 === pTest.length &&
+							app.pCount[channel_name].step === app.pCount[channel_name].length
+
+						){
+
+							if(!app.pCount[channel_name].members.includes(username))
+								app.pCount[channel_name].members.push(username);
+
+							app.pCount[channel_name].step++;
+							app.pCount[channel_name].length = pTest.length;
+
+						}
+
+						else if(app.pCount[channel_name].step - 1 === pTest.length){
+
+							if(pTest.length !== 1 && !app.pCount[channel_name].members.includes(username))
+								app.pCount[channel_name].members.push(username);
+
+							app.pCount[channel_name].step--;
+
+						}
+						else{
+
+							app.pCount[channel_name] = null;
+
+						}
+
+						if(
+
+							app.pCount[channel_name] && (
+
+								app.pCount[channel_name].length > 1 &&
+								app.pCount[channel_name].step === 1
+
+							)
+
+						){
+
+							const length = app.pCount[channel_name].length;
+							const pChar = app.pCount[channel_name].pChar;
+							const members = app.pCount[channel_name].members;
+							const endedByMember = members.includes(username);
+							const action = endedByMember ? (
+								members.length === 1 ? `${members[0]} fez` : `${members.join(", ")} fizeram`
+							) : `${username} roubou`;
+
+							if(length >= 3 && length < 5){
+
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "ppL miniClap too smol" : "WeirdChamp"}`);
+
+							}
+							else if(length >= 5 && length < 10){
+
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "Pog" : "WeirdChamp"}`);
+
+							}
+							else if(length >= 10 && length  < 15){
+
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "PogU" : "WeirdChamp"}`);
+
+							}
+							else if(length >= 15 && length < 25){
+
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "✋ WutFaceW STOP" : "WeirdChamp"}`);
+
+							}
+							else if(length >= 25){
+
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? ":D /ban" : "WeirdChamp"}}`);
+
+							}
+							app.pCount[channel_name] = null;
+
+						}
+
+					}else
+						app.pCount[channel_name] = null;
+
+				}else
+					app.pCount[channel_name] = null;
+
+				return true;
+
+			}
+
+		}else
+			app.pCount[channel_name] = null;
+
+	},
+
 	onConnect(addr, port) {
 
 		console.log(`* Connected to ${addr}:${port}`);
@@ -568,7 +694,8 @@ const app = {
 			app.has_remind(username, target) ||
 			app.is_return_afk(username, target) ||
 			app.is_a_command(rawText, prefix, username, target) ||
-			app.testAutoAnswer(rawText, username, target)
+			app.testAutoAnswer(rawText, username, target) ||
+			app.testPyramid(rawText, username, target)
 
 		);
 
