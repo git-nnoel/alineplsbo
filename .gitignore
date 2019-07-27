@@ -4,4 +4,5 @@ yarn.lock
 package-lock.json
 sec.js
 test.js
+.env
 db/aline.db
