@@ -15,7 +15,7 @@ const app = {
 	mute: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
-	ignore : ["necronstars", "crayzerbr"],
+	ignore : ["necronstars", "crayzerbr","ArtyrkBS","0luccas0"],
 	regex : {},
 
 	pCount : {},
@@ -115,7 +115,7 @@ const app = {
 						app.sleepTime = true;
 					}
 
-					console.log("1");
+
 					if (msg !== app.lastmsg) {
     				app.lastmsg = msg;
   					app.conn.say(target, msg);
@@ -125,8 +125,6 @@ const app = {
         		app.conn.say(target, msg);
       			app.lastmsg = msg + " 󠀀 "
      			}
-
-
 
 
 					if (timeouttime !== 0){
