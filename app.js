@@ -12,7 +12,9 @@ const app = {
 	lastmsg: " ",
 	messageRateCounter: 0,
 	sleepTime: false,
+
 	mute: {},
+	liveon: false,
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstars", "crayzerbr","ArtyrkBS","0luccas0"],
@@ -94,7 +96,7 @@ const app = {
 
 			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': process.env.API_KEY}})
 				.then(res => res.json())
-				.then(res => {app.mute.cellbit = (res.data && res.data.length > 0)})
+				.then(res => {app.liveon = (res.data && res.data.length > 0)})
 				.catch(err => {});
 
 		}, 20000);
@@ -687,6 +689,13 @@ const app = {
 			app.mute[channel_name] = (rawText === `${prefix}mute on`);
 
 		}
+
+		if (
+
+			channel_name === "cellbit" ||
+			 app.liveon === true
+
+		 ) return;
 
 		if(
 
