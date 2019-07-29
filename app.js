@@ -97,34 +97,25 @@ const app = {
 				.then(res => res.json())
 				.then(res => {
 
-					console.log("1");
-
 					if(res.data && res.data.length > 0){
-						console.log("2.1");
 						app.conn.part("#cellbit")
 						.then((data) => {
-						    console.log("3.1");
 						}).catch((err) => {
-						    //
 						});
 
 					}
 					else{
 
-						console.log("2.2");
 						app.conn.join("#cellbit")
 						.then((data) => {
-						    console.log("3.2");
-								console.log(data);
 						}).catch((err) => {
-						    //
 						});
 
 					}
 
 				})
 
-		}, 10000);
+		}, 20000);
 
 	},
 
