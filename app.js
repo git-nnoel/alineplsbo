@@ -649,6 +649,26 @@ const app = {
 
 		console.log(`* Connected to ${addr}:${port}`);
 
+		const channels = process.env.devmode === "true" ? process.env.devChannels.split("|") : process.env.prodChannels.split("|");
+		channels.map(channel => `#${channel}`);
+
+		const connect = () => {
+
+			if(channels.length > 0){
+
+				const channel = channels.shift();
+				app.conn.join(channel).then((data) => {
+					connect()
+				}).catch((err) => {
+					channels.push(channel);
+					connect();
+				});
+
+			}
+
+		};
+		connect();
+
 	},
 	onMessage(target, context, rawText, self){
 
@@ -686,13 +706,13 @@ const app = {
 
 		return (
 
-			app.has_remind(username, target) ||
-			app.is_return_afk(username, target) ||
-			app.is_a_command(rawText, prefix, username, target) ||
-			app.testAutoAnswer(rawText, username, target) ||
-			app.testPyramid(rawText, username, target)
+		 	app.has_remind(username, target) ||
+		 	app.is_return_afk(username, target) ||
+		 	app.is_a_command(rawText, prefix, username, target) ||
+		 	app.testAutoAnswer(rawText, username, target) ||
+		 	app.testPyramid(rawText, username, target)
 
-		);
+		 );
 
 	},
 
@@ -709,9 +729,17 @@ const app = {
 		const identity = {username, password};
 
 		// Evitar conflitos de ambientes de teste (em modo teste ela só aparece no canal da alinepls, iniciar com "yarn dev" ou "npm dev")
-		const channels = process.env.devmode === "true" ? process.env.devChannels.split("|") : process.env.prodChannels.split("|");
 
-		app.conn = new tmi.client({identity, channels});
+		const channels = [];
+
+		app.conn = new tmi.client({
+			identity,
+			channels,
+			connection: {
+				reconnect : true,
+				secure : true,
+			}
+		});
 		app.conn.on('connected', app.onConnect);
 		app.conn.on('message', app.onMessage);
 
