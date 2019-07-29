@@ -14,10 +14,6 @@ const app = {
 	sleepTime: false,
 
 	mute: {},
-<<<<<<< HEAD
-=======
-
->>>>>>> 10d44d6e77a44606df5fc4c13fc77a5942e6442a
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["necronstars", "crayzerbr","ArtyrkBS","0luccas0"],
@@ -99,7 +95,6 @@ const app = {
 
 			fetch('https://api.twitch.tv/helix/streams/?user_login=cellbit', {method: 'get', headers: {'Client-Id': process.env.API_KEY}})
 				.then(res => res.json())
-<<<<<<< HEAD
 				.then(res => {
 
 					console.log("1");
@@ -128,10 +123,6 @@ const app = {
 					}
 
 				})
-=======
-				.then(res => {app.mute.cellbit = (res.data && res.data.length > 0)})
->>>>>>> 10d44d6e77a44606df5fc4c13fc77a5942e6442a
-				.catch(err => {});
 
 		}, 10000);
 
@@ -744,10 +735,6 @@ const app = {
 
 		}
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 10d44d6e77a44606df5fc4c13fc77a5942e6442a
 		if(
 
 			self ||
