@@ -16,7 +16,7 @@ const app = {
 	mute: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
-	ignore : ["necronstars", "crayzerbr","ArtyrkBS","0luccas0"],
+	ignore : ["necronstars","artyrkbs","rasfael","naoseiquenomeeuotobo"],
 	regex : {},
 
 	pCount : {},
@@ -65,11 +65,13 @@ const app = {
 			});
 		});
 
+		const colors = ['OrangeRed', 'Chocolate', 'YellowGreen', 'SeaGreen', 'Blue', 'BlueViolet'];
+
 		const plug = ["link do plug", "ouvindo musica"];
 
 	    const alineinteractions = [];
 
-		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa"];
+		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa","patoD"];
 		const alinefeliz = ["alinepls", "aline", "alienpls"];
 	    alinefeliz.each(al => {
 			smiles.each(sm => {
@@ -87,6 +89,8 @@ const app = {
 		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
 		app.smiles                        = smiles;
+		app.colors												= colors;
+		app.originalcolor									= "Chocolate";
 
 	},
 	autoMute(){
@@ -243,7 +247,7 @@ const app = {
 		switch (toCommand.shift().toLowerCase()) {
 
 			case `${prefix}repetir`:
-				if(blocked.includes(channel_name)) return;
+				if(blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
 				const times = Math.abs(parseInt(toCommand.shift()));
 				if (!isNaN(times) && toCommand.length > 0) {
@@ -267,9 +271,9 @@ const app = {
 				return true;
 			case `${prefix}piramide`:
 
-				if(blocked.includes(channel_name)) return;
+				if(blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
-				if(toCommand.length > 1){
+				if(app.masters.includes(`${username}`)){
 
 					const size = Math.abs(parseInt(toCommand.shift()));
 					if (!isNaN(size)) {
@@ -295,7 +299,9 @@ const app = {
 
 				return true;
 			case `${prefix}spam`:
-				if(blocked.includes(channel_name)) return;
+				//if(blocked.includes(channel_name)) return;
+				return;
+
 
 				const toSpam = toCommand.join(" ");
 					if (toSpam.length > 0) {
@@ -303,7 +309,7 @@ const app = {
 						let count = 0;
 						let interval = setInterval(() => {
 
-							app.say(target, toSpam, false, false);
+							app.say(target, toSpam, false, false, 0);
 							count++;
 							if (count === 25) {
 								clearInterval(interval);
@@ -452,7 +458,32 @@ const app = {
 				}
 
 				return true;
+			case `${prefix}rainbow`:
 
+				if (toCommand.length > 0 && toCommand.length <= 10) {
+					var rainbowtext = toCommand.shift();
+				}
+				else{
+					var rainbowtext = "RainbowPls it's Rainbow Time";
+				}
+
+				// if (channel_name === "cellbit"){
+				// 	var rainbowsleep = true
+				//
+				// }
+				// else{
+				// 	var rainbowsleep = false
+				// }
+
+				app.colors.each(col => {
+					app.say(target, "/color " + col, false, false);
+					app.say(target, "/me " + rainbowtext, false, false);
+				});
+
+				app.say(target, "/color " + app.originalcolor, false, false)
+
+
+				return true;
 			case `${prefix}comandos`:
 
 				let list = "";
@@ -613,14 +644,14 @@ const app = {
 
 						}
 						else{
-
 							app.pCount[channel_name] = null;
+							return false;
 
 						}
 
 						if(
 
-							app.pCount[channel_name] && (
+							app.pCount[channel_name] !== null && (
 
 								app.pCount[channel_name].length > 1 &&
 								app.pCount[channel_name].step === 1
