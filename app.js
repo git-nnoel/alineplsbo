@@ -20,6 +20,7 @@ const app = {
 	regex : {},
 
 	pCount : {},
+	Broken : false,
 
 	preprocess(){
 
@@ -69,18 +70,18 @@ const app = {
 
 		const plug = ["link do plug", "ouvindo musica"];
 
-	    const alineinteractions = [];
 
+		const alineinteractions = [];
 		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa","patoD"];
 		const alinefeliz = ["alinepls", "aline", "alienpls"];
-	    alinefeliz.each(al => {
+	  alinefeliz.each(al => {
 			smiles.each(sm => {
 
 				alineinteractions.push(`${sm} ${al}`);
 				alineinteractions.push(`${al} ${sm}`);
 
 			});
-	    });
+		});
 
 		app.regex.testForFake             = new RegExp("(" + fakeTest.join("|") + ")");
 		app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
@@ -89,6 +90,7 @@ const app = {
 		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
 		app.smiles                        = smiles;
+		app.alineinteractions							= alineinteractions;
 		app.colors												= colors;
 		app.originalcolor									= "Chocolate";
 
@@ -575,15 +577,16 @@ const app = {
 	},
   	testInteraction(toAnalise, rawText, username, target){
 
-		return app.smiles.each(sm => {
+		return app.alineinteractions.each(ai => {
+			app.smiles.each(sm =>{
 
-			if(rawText.contains(sm) && app.regex.names.test(toAnalise)){
-
+			if(toAnalise.contains(ai) && toAnalise.contains(sm)){
 				app.say(target, `${username} ` + sm, true);
 				return true;
 
 			}
 
+		})
 		})
 
 	},
@@ -645,7 +648,7 @@ const app = {
 						}
 						else{
 							app.pCount[channel_name] = null;
-							return false;
+							app.Broken[channel_name] = true;
 
 						}
 
@@ -654,7 +657,8 @@ const app = {
 							app.pCount[channel_name] !== null && (
 
 								app.pCount[channel_name].length > 1 &&
-								app.pCount[channel_name].step === 1
+								app.pCount[channel_name].step === 1 &&
+								app.Broken !== true
 
 							)
 
@@ -701,14 +705,15 @@ const app = {
 						app.pCount[channel_name] = null;
 
 				}else
-					app.pCount[channel_name] = null;
-
+				app.pCount[channel_name] = null;
+				app.Broken = false;
 				return true;
 
 			}
 
 		}else
 			app.pCount[channel_name] = null;
+			app.Broken = false;
 
 	},
 
