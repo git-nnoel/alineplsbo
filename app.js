@@ -14,9 +14,9 @@ const app = {
 	sleepTime: false,
 
 	mute: {},
-	masters : ["nnoel", "emma_lee", "bhaskarai"],
+	masters : ["nnoel", "emma_lee", "bhaskarai","noblezito","tataxmei"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
-	ignore : ["necronstars","artyrkbs","rasfael","naoseiquenomeeuotobo"],
+	ignore : ["rasfael","naoseiquenomeeuotobo"],
 	regex : {},
 
 	pCount : {},
@@ -72,8 +72,8 @@ const app = {
 
 
 		const alineinteractions = [];
-		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa","patoD"];
-		const alinefeliz = ["alinepls", "aline", "alienpls"];
+		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa","cellB","cellL","cellHmm","patoD"];
+		const alinefeliz = ["alinepls", "aline", "alienpls","chat"];
 	  alinefeliz.each(al => {
 			smiles.each(sm => {
 
@@ -95,6 +95,7 @@ const app = {
 		app.originalcolor									= "Chocolate";
 
 	},
+	if (process.argv[2] === undefined){
 	autoMute(){
 
 		setInterval(() => {
@@ -124,6 +125,7 @@ const app = {
 		}, 20000);
 
 	},
+}
 
 	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
 
@@ -244,6 +246,7 @@ const app = {
 		let msg;
 
 		const blocked = ["cellbit"];
+		const alter = process.env.alterChannels.split("|");
 
 		// Commands test
 		switch (toCommand.shift().toLowerCase()) {
@@ -344,22 +347,24 @@ const app = {
 				];
 
 				let lTarget = toCommand.join(" ");
-				if (username === "nnoel")
-					msg = `${username} & ${lTarget} : ${randomInt(70, 100)}% love Pog ❤ `;
-
+				if (lTarget === "arstotzka" || lTarget === "Arstotzka"){
+					app.say(target, "/color red", false, false);
+					msg = `/me ${username} $ ${lTarget} : 100% cellGr 7 GLORIA A ARSTOTZKA`;
+					}
 				else if ((username === "bhaskarai" && lTarget === "carlamorena") || (username === "carlamorena" && lTarget === "bhaskarai"))
 					msg = `${username} & ${lTarget} : 100% love 💓 😍`;
-
 				else if (username === "dinokat" && (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin"))
 					msg = `${username} :z http://prntscr.com/ojpjr6`;
 					// vai la beijar a satanya velho filho da puta cellGr
 				else if (lTarget === "emma_lee" || lTarget === "emma" || lTarget === "liriapatin" || lTarget === "liria" || lTarget === "patin")
 					msg = `${username} & ${lTarget} : 0% love cellH 💔`;
-
+				else if (app.masters.includes(username))
+					msg = `${username} & ${lTarget} : ${randomInt(80, 100)}% love Pog ❤ `;
 				else
 					msg = `${username} & ${lTarget} : ${percent[randomInt(0, percent.length - 1)]}`;
 
-				app.say(target, msg, true);
+				app.say(target, msg, false, false);
+				app.say(target, "/color " + app.originalcolor, true);
 				return true;
 			case `${prefix}afk`:
 				if (toCommand.length > 0)
@@ -461,6 +466,7 @@ const app = {
 
 				return true;
 			case `${prefix}rainbow`:
+			return;
 
 				if (toCommand.length > 0 && toCommand.length <= 10) {
 					var rainbowtext = toCommand.shift();
@@ -539,7 +545,7 @@ const app = {
 
 	},
 	testLive(toAnalise, rawText, username, target){
-
+		if(blocked.includes(channel_name)) return;
 		if (app.regex.lives.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
 			app.say(target,`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
@@ -549,7 +555,7 @@ const app = {
 
 	},
 	testPlug(toAnalise, rawText, username, target){
-
+		if(blocked.includes(channel_name)) return;
 		if (app.regex.plug.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
 			app.say(target,`${username} plug.dj/-5321101498343942054 pepeJAM`);
@@ -559,7 +565,7 @@ const app = {
 
 	},
 	testEmotes(toAnalise, rawText, username, target){
-
+		if(blocked.includes(channel_name)) return;
 		if (
 
 			rawText.indexOf("?") !== -1 &&
@@ -648,19 +654,17 @@ const app = {
 						}
 						else{
 							app.pCount[channel_name] = null;
-							app.Broken[channel_name] = true;
+							app.Broken = true;
+							return false;
 
 						}
 
 						if(
 
-							app.pCount[channel_name] !== null && (
-
-								app.pCount[channel_name].length > 1 &&
-								app.pCount[channel_name].step === 1 &&
-								app.Broken !== true
-
-							)
+							app.pCount[channel_name] !== null &&
+							app.pCount[channel_name].length > 1 &&
+							app.pCount[channel_name].step === 1 &&
+							app.Broken !== true
 
 						){
 
@@ -701,19 +705,21 @@ const app = {
 
 						}
 
-					}else
+					}else {
 						app.pCount[channel_name] = null;
-
+						return false;
+						}
 				}else
 				app.pCount[channel_name] = null;
 				app.Broken = false;
-				return true;
+				return false;
 
 			}
 
 		}else
 			app.pCount[channel_name] = null;
 			app.Broken = false;
+			return false;
 
 	},
 
@@ -721,7 +727,7 @@ const app = {
 
 		console.log(`* Connected to ${addr}:${port}`);
 
-		const channels = process.env.devmode === "true" ? process.env.devChannels.split("|") : process.env.prodChannels.split("|");
+		const channels = process.argv[2] === undefined ? process.env.prodChannels.split("|") : process.argv[2] === "dev" ? process.env.devChannels.split("|") : process.env.alterChannels.split("|");
 		channels.map(channel => `#${channel}`);
 
 		const connect = () => {
