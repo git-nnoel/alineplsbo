@@ -8,13 +8,15 @@ require("dotenv").config();
 const app = {
 
 	conn : null,
+	blocked : ["cellbit"],
+	alter : ["carlamorena","tataxmei","alinepls"],
 
 	lastmsg: " ",
 	messageRateCounter: 0,
 	sleepTime: false,
 
 	mute: {},
-	masters : ["nnoel", "emma_lee", "bhaskarai","noblezito","tataxmei"],
+	masters : ["nnoel", "emma_lee", "bhaskarai","noblezito","tataxmei","carlamorena"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
 	ignore : ["rasfael","naoseiquenomeeuotobo"],
 	regex : {},
@@ -23,7 +25,6 @@ const app = {
 	Broken : false,
 
 	preprocess(){
-
 		const emotes = [];
 		const emotes1 = ["ve os {replace}", "ver os {replace}", "vejo os {replace}", "vejo esses {replace}", "como que ve esses {replace}", "onde que ve esses {replace}", "baixo essa {replace}", "o que e {replace}", "consigo essa {replace}", "baixa essa {replace}", "baixa a {replace}", "e essa {replace}", "extensao dos {replace}", "extencao dos {replace}"];
 		const emotes2 = ["emotes", "emote", "emoji", "emoticon", "emojis", "emoticons", "emtes", "extensao", "extencao", "extenção", "extensão", "bbtv", "bttv"];
@@ -36,7 +37,7 @@ const app = {
 		});
 
 		const fakeTest = [":D", ":\\)", ";\\)", "R\\)", ":\\(", ":Z", ">\\(", ":O", ":P", ":z", ":\\|", ":\\/", "cellPP", "cellX",
-			"cellTa", "cellOi", "cellNormie", "AYAYA", "cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "Pepega"];
+			"cellTa", "cellOi", "cellNormie", "AYAYA", "cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "Pepega", "cellQ", "cellG"];
 
 		const hel = [];
 		const hellos = ["eae", "oi", "ola", "bom dia", "boa tarde", "boa noite", "tchau", "flw", "xau", "hi"];
@@ -72,13 +73,23 @@ const app = {
 
 
 		const alineinteractions = [];
-		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "AYAYA","cellR", "cellEMOTE", "cellGr", "cellA", "cellH", "cellAYAYA", "cellFofo", "cellWtf", "cellWD", "cellX", "cellZ", "cellPP", "cellTa","cellB","cellL","cellHmm","patoD"];
+		const alinepeepos = [];
+		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "o_O", "R)", ";P", "AYAYA", "cellFofo", "cellBurro", "cellWD", "cellAYAYA", "cellA", "cellZ", "cellX", "cellB", "cellHmm", "cellR", "cellGr", "cellS", "cell0", "cellH", "cellL", "cellV", "patoD"];
+		const peepos = ["peepoEZ", "peepoBlush", "peepoShrug", "peepoS", "peepoChave", "peepoSad", "peepoMad", "peepoHurt", "peepoSadMan", "peepoOkay", "PeepoWeird", "peepoHands", "peepoThink", "peepoPog", "WideHardo", "Pepege", "peepoChampion", "PepLaugh", "peepoNerd", "peepoGlad", "peepoSus", "peepoComfy", "peepoPogMe", "pepeL", "peepoPat"];
 		const alinefeliz = ["alinepls", "aline", "alienpls","chat"];
 	  alinefeliz.each(al => {
 			smiles.each(sm => {
 
 				alineinteractions.push(`${sm} ${al}`);
 				alineinteractions.push(`${al} ${sm}`);
+
+			});
+		});
+		alinefeliz.each(al => {
+			peepos.each(sm => {
+
+				alinepeepos.push(`${sm} ${al}`);
+				alinepeepos.push(`${al} ${sm}`);
 
 			});
 		});
@@ -90,12 +101,13 @@ const app = {
 		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
 		app.smiles                        = smiles;
+		app.peepos												= peepos;
 		app.alineinteractions							= alineinteractions;
+		app.alinepeepos										= alinepeepos;
 		app.colors												= colors;
 		app.originalcolor									= "Chocolate";
 
 	},
-	if (process.argv[2] === undefined){
 	autoMute(){
 
 		setInterval(() => {
@@ -125,8 +137,6 @@ const app = {
 		}, 20000);
 
 	},
-}
-
 	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
 
 		setTimeout(() => {
@@ -245,14 +255,11 @@ const app = {
 		};
 		let msg;
 
-		const blocked = ["cellbit"];
-		const alter = process.env.alterChannels.split("|");
-
 		// Commands test
 		switch (toCommand.shift().toLowerCase()) {
 
 			case `${prefix}repetir`:
-				if(blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
+				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
 				const times = Math.abs(parseInt(toCommand.shift()));
 				if (!isNaN(times) && toCommand.length > 0) {
@@ -276,7 +283,7 @@ const app = {
 				return true;
 			case `${prefix}piramide`:
 
-				if(blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
+				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
 				if(app.masters.includes(`${username}`)){
 
@@ -304,7 +311,7 @@ const app = {
 
 				return true;
 			case `${prefix}spam`:
-				//if(blocked.includes(channel_name)) return;
+				//if(app.blocked.includes(channel_name)) return;
 				return;
 
 
@@ -530,7 +537,8 @@ const app = {
 			app.testLive(toAnalise, rawText, username, target) ||
 			app.testPlug(toAnalise, rawText, username, target) ||
 			app.testEmotes(toAnalise, rawText, username, target) ||
-      		app.testInteraction(toAnalise, rawText, username, target)
+    	app.testInteraction(toAnalise, rawText, username, target) ||
+			app.testTPeepos(toAnalise, rawText, username, target)
 		)
 
 	},
@@ -538,14 +546,15 @@ const app = {
 
 		if (app.regex.hello.test(toAnalise)) {
 
-			app.say(target,`${username} cellOi cellR`);
+			app.say(target,`${username} 👋 cellQ`);
 
 			return true;
 		}else return false;
 
 	},
 	testLive(toAnalise, rawText, username, target){
-		if(blocked.includes(channel_name)) return;
+		const channel_name = target.replace("#", "");
+		if (app.alter.includes(channel_name)) return false;
 		if (app.regex.lives.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
 			app.say(target,`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
@@ -555,17 +564,19 @@ const app = {
 
 	},
 	testPlug(toAnalise, rawText, username, target){
-		if(blocked.includes(channel_name)) return;
+		const channel_name = target.replace("#", "");
+		if (app.alter.includes(channel_name)) return false;
 		if (app.regex.plug.test(toAnalise) && rawText.indexOf("?") !== -1) {
 
-			app.say(target,`${username} plug.dj/-5321101498343942054 pepeJAM`);
+			app.say(target,`${username} plug.dj/alinepls pepeJAM`);
 
 			return true;
 		}else return false;
 
 	},
 	testEmotes(toAnalise, rawText, username, target){
-		if(blocked.includes(channel_name)) return;
+		const channel_name = target.replace("#", "");
+		if (app.alter.includes(channel_name)) return false;
 		if (
 
 			rawText.indexOf("?") !== -1 &&
@@ -582,7 +593,6 @@ const app = {
 
 	},
   	testInteraction(toAnalise, rawText, username, target){
-
 		return app.alineinteractions.each(ai => {
 			app.smiles.each(sm =>{
 
@@ -596,6 +606,22 @@ const app = {
 		})
 
 	},
+	testTPeepos(toAnalise, rawText, username, target){
+	const channel_name = target.replace("#", "");
+	if (channel_name !== "tataxmei") return false;
+	return app.alinepeepos.each(ai => {
+		app.peepos.each(sm =>{
+
+		if(toAnalise.contains(ai) && toAnalise.contains(sm)){
+			app.say(target, `${username} ` + sm, true);
+			return true;
+
+		}
+
+	})
+	})
+
+},
 
 	testPyramid(rawText, username, target){
 
@@ -678,27 +704,27 @@ const app = {
 
 							if(length >= 3 && length < 5){
 
-								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "ppL miniClap too smol" : "WeirdChamp"}`);
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "too smol ppL" : "monkaJ"}`);
 
 							}
 							else if(length >= 5 && length < 10){
 
-								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "Pog" : "WeirdChamp"}`);
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "Pog" : "monkaJ"}`);
 
 							}
 							else if(length >= 10 && length  < 15){
 
-								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "PogU" : "WeirdChamp"}`);
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "PogU" : "monkaJ"}`);
 
 							}
 							else if(length >= 15 && length < 25){
 
-								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "✋ WutFaceW STOP" : "WeirdChamp"}`);
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? "✋ WutFaceW STOP" : " :tf: Problemo?"}`);
 
 							}
 							else if(length >= 25){
 
-								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? ":D /ban" : "WeirdChamp"}}`);
+								app.say(target, `${action} uma piramide de ${length} ${pChar} ${endedByMember ? ":D /ban" : "monkaJ Clap You made history"}}`);
 
 							}
 							app.pCount[channel_name] = null;
@@ -796,8 +822,10 @@ const app = {
 
 	init(){
 
+		const kkomrade = process.argv[2];
 		// presets
 		app.preprocess();
+		if (kkomrade === undefined)
 		app.autoMute();
 		sqlite.connect();
 

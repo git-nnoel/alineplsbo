@@ -5,8 +5,8 @@
   "main": "app.js",
   "scripts": {
     "prod": "forever stop app.js; forever start app.js",
-    "dev" : "devmode=true node app.js",
-    "stop" :  "forever stop app.js"
+    "dev": "devmode=true node app.js",
+    "stop": "forever stop app.js"
   },
   "dependencies": {
     "better-sqlite3": "^5.4.0",
@@ -14,5 +14,16 @@
     "forever": "^1.0.0",
     "node-fetch": "^2.6.0",
     "tmi.js": "^1.4.5"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/git-nnoel/alineplsbo.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/git-nnoel/alineplsbo/issues"
+  },
+  "homepage": "https://github.com/git-nnoel/alineplsbo#readme"
 }
