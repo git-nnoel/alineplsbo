@@ -1,3 +1,4 @@
+// const con = require('../app')
 // Prototypes
 String.prototype.contains = function(toSearch, Sense){
 
@@ -113,32 +114,36 @@ Object.prototype.each = function(cb){
     return breaked;
 
 };
-String.prototype.testBanned = function(channel_name, prefix){
-
-    const rawText = this;
-    const bannedPhrases = sqlite.select("select phrase, action from bannedPhrase where channel_name = ?", channel_name);
-
-    let toAnalise = rawText.removeSpecialChars(prefix).removeRepeats().trim();
-
-    let fakeI  = toAnalise.replaceAll("I", "l", true).toLowerCase();
-    let fakeL  = toAnalise.replaceAll("l", "I", true).toLowerCase();
-    let fakeY  = toAnalise.replaceAll("y", "i").toLowerCase();
-    let fakeI2 = toAnalise.replaceAll("i", "y").toLowerCase();
-    toAnalise  = toAnalise.toLowerCase();
-
-    return !!bannedPhrases.each((bannedPhrase) => {
-        if (
-
-            toAnalise.contains(bannedPhrase.phrase) ||
-            fakeI.contains(bannedPhrase.phrase) ||
-            fakeL.contains(bannedPhrase.phrase) ||
-            fakeY.contains(bannedPhrase.phrase) ||
-            fakeI2.contains(bannedPhrase.phrase)
-
-        ) return true;
-    });
-
-};
+// String.prototype.testBanned = function(channel_name, prefix){
+//
+//     const rawText = this;
+//     var bannedPhrases = [];
+//     connn.query("select phrase, action from bannedPhrase where channel_name = ?", channel_name, (err,rows) => {
+//       if(err) throw err;
+//       bannedPhrases = rows;
+//     });
+//
+//     let toAnalise = rawText.removeSpecialChars(prefix).removeRepeats().trim();
+//
+//     let fakeI  = toAnalise.replaceAll("I", "l", true).toLowerCase();
+//     let fakeL  = toAnalise.replaceAll("l", "I", true).toLowerCase();
+//     let fakeY  = toAnalise.replaceAll("y", "i").toLowerCase();
+//     let fakeI2 = toAnalise.replaceAll("i", "y").toLowerCase();
+//     toAnalise  = toAnalise.toLowerCase();
+//
+//     return !!bannedPhrases.each((bannedPhrase) => {
+//         if (
+//
+//             toAnalise.contains(bannedPhrase.phrase) ||
+//             fakeI.contains(bannedPhrase.phrase) ||
+//             fakeL.contains(bannedPhrase.phrase) ||
+//             fakeY.contains(bannedPhrase.phrase) ||
+//             fakeI2.contains(bannedPhrase.phrase)
+//
+//         ) return true;
+//     });
+//
+// };
 
 // Functions
 const randomInt = (min, max) => {
@@ -149,30 +154,22 @@ const randomInt = (min, max) => {
     return Math.floor(Math.random() * (max - min)) + min;
 
 };
-const sqlite = {
+//
+//
+//
 
-    conn : null,
-    connect(){
+const mysql = require('mysql');
 
-        if(!sqlite.conn){
+const connn = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: 'leiaoguia',
+  database: 'aline'
+});
 
-            sqlite.conn = require('better-sqlite3')('db/aline.db');
-
-        }
-
-    },
-    select(query, ...binds){
-
-        return sqlite.conn.prepare(query).all(...binds);
-
-    },
-    run(query, ...binds){
-
-        sqlite.conn.prepare(query).run(...binds);
-
-    },
-
-};
+//
+//
+//
 const dateInterval = (dateString, formatted = true) => {
 
     if(dateString.indexOf("GMT") === -1){
@@ -255,6 +252,74 @@ const dateInterval = (dateString, formatted = true) => {
 };
 
 
+
+/*
+
+
+
+//
+//Query METHODS
+function save_message(username, channel_name, rawText, prefix){
+
+  let exist = con.query("select name from user where name = ?", username);
+  if (exist.length < 1) {
+
+    con.query("insert into user (name) values (?)", username)
+
+  }
+  if (rawText.charAt(0) !== prefix) {
+
+    con.query("insert into message_on_channel(channel_name, user_name, message, sended_at) values(?, ?, ?, CURRENT_TIMESTAMP)", channel_name, username, rawText);
+
+  }
+  return;
+
+};
+
+
+function has_remind(username, target){
+
+  const hasMessage = con.query("select user_from, message from remind where user_to = ?", username);
+  if (hasMessage.length > 0){
+
+    hasMessage.forEach(messageData => {
+
+      const from = messageData["user_from"];
+      const message = messageData["message"];
+
+      app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
+
+    });
+    con.query("delete from remind where user_to = ?", username);
+    return true;
+
+  }else return false;
+
+};
+
+
+function is_return_afk(username, target){
+
+  const isReturnOfAFK = con.query("select message, started_at from afk where user_name = ?", username);
+  if (isReturnOfAFK.length > 0) {
+
+    app.say(target, `${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"])}: ${isReturnOfAFK[0]["message"]}`, true);
+    con.query("delete from afk where user_name = ?", username);
+
+    return true;
+
+  }else return false;
+
+};
+
+
+
+*/
+
+
+
+
+
 module.exports.randomInt = randomInt;
-module.exports.sqlite = sqlite;
+// module.exports.connn = connn;
 module.exports.dateInterval = dateInterval;

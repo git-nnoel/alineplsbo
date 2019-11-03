@@ -1,8 +1,17 @@
 // Requires
 const tmi = require('tmi.js');
 const fetch = require("node-fetch");
-const {randomInt, sqlite, dateInterval} = require("./src/tools");
+const mysql = require('mysql');
+const {randomInt, dateInterval} = require("./src/tools");
 require("dotenv").config();
+
+const con = mysql.createConnection({
+	host: 'localhost',
+	user: 'root',
+	password: 'leiaoguia',
+	database: 'aline',
+  charset : 'utf8mb4'
+});
 
 // Handlers
 const app = {
@@ -18,7 +27,7 @@ const app = {
 	mute: {},
 	masters : ["nnoel", "emma_lee", "bhaskarai","noblezito","tataxmei","carlamorena"],
 	bots : ["dont_ping_haxk", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot"],
-	ignore : ["rasfael","naoseiquenomeeuotobo"],
+	ignore : ["otalsemnome_"],
 	regex : {},
 
 	pCount : {},
@@ -74,7 +83,8 @@ const app = {
 
 		const alineinteractions = [];
 		const alinepeepos = [];
-		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "o_O", "R)", ";P", "AYAYA", "cellFofo", "cellBurro", "cellWD", "cellAYAYA", "cellA", "cellZ", "cellX", "cellB", "cellHmm", "cellR", "cellGr", "cellS", "cell0", "cellH", "cellL", "cellV", "patoD"];
+		const smiles = [":D", ":)", ";)", "R)", ":(", ":Z", ">(", ":O", ":P", ":z", ":|", ":/", "o_O", "R)", ";P", "ppL", "AYAYA"];
+		//, "cellFofo", "cellBurro", "cellWD", "cellAYAYA", "cellA", "cellZ", "cellX", "cellB", "cellHmm", "cellR", "cellGr", "cellS", "cellGift", "cellH", "cellL", "cellSip", "cellQ", "cellBuxo", "cellVelho"];
 		const peepos = ["peepoEZ", "peepoBlush", "peepoShrug", "peepoS", "peepoChave", "peepoSad", "peepoMad", "peepoHurt", "peepoSadMan", "peepoOkay", "PeepoWeird", "peepoHands", "peepoThink", "peepoPog", "WideHardo", "Pepege", "peepoChampion", "PepLaugh", "peepoNerd", "peepoGlad", "peepoSus", "peepoComfy", "peepoPogMe", "pepeL", "peepoPat"];
 		const alinefeliz = ["alinepls", "aline", "alienpls","chat"];
 	  alinefeliz.each(al => {
@@ -138,14 +148,15 @@ const app = {
 
 	},
 	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
-
+		console.log("5");
 		setTimeout(() => {
 
 			if ((app.messageRateCounter < 18) && ((!sleep) || (sleep && !app.sleepTime))) {
-
+				console.log("6");
+				if (msg !== undefined)
 				if(!msg.testBanned(target.replace("#", ""), "$")){
 
-
+					console.log("7");
 					if(timeouttime !== 0){
 						app.messageRateCounter++;
 						app.sleepTime = true;
@@ -185,23 +196,66 @@ const app = {
 	},
 
 	save_message(username, channel_name, rawText, prefix){
+		var userexist1 = null;
+		existUser(username, channel_name, rawText, prefix, userexist1)
 
-		let exist = sqlite.select("select name from user where name = ?", username);
-		if (exist.length < 1) {
+		async function existUser (username, channel_name, rawText, prefix, userexist1){
+			await con.query("select * from user where name = ?", username, function (err, rows) {
+                if (err) throw err;
+								console.log(rows === undefined);
+								if (rows[0] !== undefined)
+								userexist1 = rows[0].name;
+								console.log("usuario registrado: " + userexist1);
+								saveUser(username, channel_name, rawText, prefix, userexist1)
+              }
+            );
+					}
 
-			sqlite.run("insert into user (name) values (?)", username)
+		async function saveUser(username, channel_name, rawText, prefix, userexist1){
+			console.log("usuario ja registrado: " + userexist1);
 
+		if(userexist1 === null) {
+			await con.query("insert into user (name) values (?)", username, function (err, rows) {
+	                if (err) throw err;
+									addMessage(username, channel_name, rawText, prefix, userexist1);
+
+			});
 		}
-		if (rawText.charAt(0) !== prefix) {
+		else addMessage(username, channel_name, rawText, prefix, userexist1);
+		}
 
-			sqlite.run("insert into message_on_channel(channel_name, user_name, message, sended_at) values(?, ?, ?, CURRENT_TIMESTAMP)", channel_name, username, rawText);
-
+		function addMessage(username, channel_name, rawText, prefix, userexist1){
+			console.log(channel_name);
+			if (rawText.charAt(0) !== "$") {
+				let userTT = [username, channel_name, rawText];
+				con.query("insert into message_on_channel values(?, ?, ?, CURRENT_TIMESTAMP)", userTT, function (err, rows) {
+	                if (err) throw err;
+									console.log("inserted: " + rows);
+	    	});
+			}
 		}
 
 	},
 	has_remind(username, target){
+		console.log("0.01");
+		has_remindT(username, target)
+		async function has_remindT(username, target){
+		var hasMessage = [];
+		console.log("0.02");
+		selectRemind(username, target)
+		async function selectRemind(username, target){
+		await con.query("select user_from, message from remind where user_to = ?", username, function (err, rows) {
+                if (err) throw err;
+								console.log("select user_from: " + rows)
+								hasMessage = rows;
+								console.log(hasMessage);
+								continuaRemindT(username, target, hasMessage);
+              }
+						);
+					}
 
-		const hasMessage = sqlite.select("select user_from, message from remind where user_to = ?", username);
+					async function continuaRemindT(username, target, hasMessage){
+		if (hasMessage !== null)
 		if (hasMessage.length > 0){
 
 			hasMessage.forEach(messageData => {
@@ -212,19 +266,32 @@ const app = {
 				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
 
 			});
-			sqlite.run("delete from remind where user_to = ?", username);
+			con.query("delete from remind where user_to = ?", username, function (err, rows) {
+	                if (err) throw err;
+	              }
+							);
 			return true;
 
 		}else return false;
-
+	}
+}
 	},
 	is_return_afk(username, target){
-
-		const isReturnOfAFK = sqlite.select("select message, started_at from afk where user_name = ?", username);
+		return;
+		var isReturnOfAFK = null;
+		con.query("select message, started_at from afk where user_name = ?", username, function (err, rows) {
+								if (err) throw err;
+								isReturnOfAFK = rows;
+							}
+						);
+		if (isReturnOfAFK !== null)
 		if (isReturnOfAFK.length > 0) {
 
 			app.say(target, `${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"])}: ${isReturnOfAFK[0]["message"]}`, true);
-			sqlite.run("delete from afk where user_name = ?", username);
+			con.query("delete from afk where user_name = ?", username, function (err, rows) {
+	                if (err) throw err;
+	              }
+							);
 
 			return true;
 
@@ -236,22 +303,43 @@ const app = {
 		let toCommand = rawText.replaceAll("󠀀", "").deepTrim().split(" ");
 
 		let channel_name = target.replace("#", "");
-		let allCommands = {
 
-			//"repetir" : ``,
-			//"piramide" : ``,
-			//"spam" : ``,
+		String.prototype.testBanned = function(channel_name, prefix){
 
-			"%": `retorna uma porcentagem aleatória. Sintaxe: \`${prefix}%\``,
-			"love" : `nivel de amor entre você e alguma outra coisa. Sintaxe: \`${prefix}love moobot\``,
-			"afk": `informa que o usuário está ausente. Sintaxe: \`${prefix}afk {mensagem}\``,
-			"rl": `retorna uma mensagem aleátoria enviada pelo usuário no canal. Sintaxe: \`${prefix}rl\` ou \`${prefix}rl {usuario}\``,
-			"rq": `retorna uma mensagem aleátoria enviada no canal. Sintaxe: \`${prefix}rq\``,
-			"carta": `envia uma carta para o usuário que será recebida na proxima vez que ele mandar uma mensagem nos chats que eu estou. Sintaxe: \`${prefix}carta {usuario} {mensagem}\``,
+		    const rawText = this;
+		    var bannedPhrases = [];
+		    con.query("select phrase, action from bannedPhrase where channel_name = ?", channel_name, (err,rows) => {
+		      if(err) throw err;
+		      bannedPhrases = rows;
+					for(i = 0 ; rows[i] !== undefined ; i++)
+					bannedPhrasesTest(rawText, rows[i].phrase);
+		    });
+				function bannedPhrasesTest(rawText, bannedPhrase){
 
-			"comando": `fornece mais informações sobre um comando. Sintaxe \`${prefix}comando {comando}\``,
-			"comandos": `exibe os comandos disponiveis no canal. Sintaxe: \`${prefix}comandos\``,
+		    let toAnalise = rawText.removeSpecialChars(prefix).removeRepeats().trim();
 
+		    let fakeI  = toAnalise.replaceAll("I", "l", true).toLowerCase();
+		    let fakeL  = toAnalise.replaceAll("l", "I", true).toLowerCase();
+		    let fakeY  = toAnalise.replaceAll("y", "i").toLowerCase();
+		    let fakeI2 = toAnalise.replaceAll("i", "y").toLowerCase();
+		    toAnalise  = toAnalise.toLowerCase();
+
+
+
+		        if (
+
+		            toAnalise.contains(bannedPhrase) ||
+		            fakeI.contains(bannedPhrase) ||
+		            fakeL.contains(bannedPhrase) ||
+		            fakeY.contains(bannedPhrase) ||
+		            fakeI2.contains(bannedPhrase)
+
+		        ){
+							i = 100;
+							return true;
+						}
+
+			}
 		};
 		let msg;
 
@@ -259,12 +347,13 @@ const app = {
 		switch (toCommand.shift().toLowerCase()) {
 
 			case `${prefix}repetir`:
-				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
+				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)||toCommand.contains("/")) return;
 
 				const times = Math.abs(parseInt(toCommand.shift()));
 				if (!isNaN(times) && toCommand.length > 0) {
 
 					let toRepeat = toCommand.join(" ");
+					if (toRepeat.contains("/")) return;
 					if (toRepeat[toRepeat.length - 1] !== "\\") {
 
 						toRepeat += " "
@@ -334,7 +423,7 @@ const app = {
 
 			case `${prefix}%`:
 				toCommand = toCommand.join(" ");
-				if (toCommand.contains("ayaya") || toCommand.contains("carlarai"))
+				if (toCommand.contains("ayaya") || toCommand.contains("carlarai") || toCommand.contains("AYAYA"))
 					msg = `${username}, ${randomInt(80, 100)}% AYAYA`;
 				else
 					msg = `${username}, ${randomInt(0, 100)}% Thonk`;
@@ -372,16 +461,24 @@ const app = {
 
 				app.say(target, msg, false, false);
 				app.say(target, "/color " + app.originalcolor, true);
+
 				return true;
 			case `${prefix}afk`:
+			if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 				if (toCommand.length > 0)
 					msg = toCommand.join(" ");
 
 				else
 					msg = "🔇 :z";
 
-				sqlite.run("insert into afk(user_name, message, started_at) values(?, ?, CURRENT_TIMESTAMP)", username, msg);
-				app.say(target,`o ${username} está afk agora :z 💤 `, true);
+				function insertIntoAFK(){
+				con.query("insert into afk(user_name, message, started_at) values(?, ?, CURRENT_TIMESTAMP)", username, msg, function (err, rows) {
+		    	if (err) throw err;
+					app.say(target,`o ${username} está afk agora :z 💤 `, true);
+		    		}
+					);
+				}
+				// app.say(target,`o ${username} está afk agora :z 💤 `, true);
 
 				return true;
 			case `${prefix}rl`:
@@ -395,7 +492,15 @@ const app = {
 				if (!app.bots.includes(uTarget)) {
 
 					// noinspection SqlResolve
-					let dResult = sqlite.select(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by random() limit 1`, [channel_name, uTarget]);
+					var dResult = null;
+					con.query(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by rand() limit 1`, [channel_name, uTarget], function (err, rows) {
+			                if (err) throw err;
+											dResult = rows;
+											rldResult(dResult, target, msg, uTarget);
+			              }
+									);
+					function rldResult(dResult, target, msg, uTarget){
+					if (dResult !== null)
 					if (dResult.length > 0) {
 
 						let message = dResult[0]["message"];
@@ -418,12 +523,22 @@ const app = {
 					app.say(target, msg);
 
 				}
+			}
 
 				return true;
 			case `${prefix}rq`:
+			return true;
 
 				// noinspection SqlResolve
-				let dataResult = sqlite.select(`SELECT user_name, message, sended_at FROM message_on_channel WHERE channel_name = ? order by random() limit 1`, [channel_name]);
+				var dataResult = null;
+				con.query(`SELECT user_name, message, sended_at FROM message_on_channel WHERE channel_name = ? order by random() limit 1`, [channel_name], function (err, rows) {
+		                if (err) throw err;
+										dataResult = rows;
+										rqResult(dataResult, target, msg);
+		              }
+								);
+								function rqResult(dataResult, target, msg){
+				if (dataResult !== null)
 				if (dataResult.length > 0) {
 
 					let message = dataResult[0]["message"];
@@ -442,32 +557,99 @@ const app = {
 					msg = `[${dateFormatted} - ${hourFormatted}] ${user}: ${message}`;
 
           app.say(target, msg);
-
+				}
 				}
 				return true;
 			case `${prefix}carta`:
-
+				console.log("0");
+				cartinha(toCommand, username, target);
+				async function cartinha(toCommand, username, target){
 				if (toCommand.length > 1) {
-
+					console.log("1");
 					const toMessage = toCommand.shift().toLowerCase();
 					const message = toCommand.join(" ");
+
 					if (!app.bots.includes(toMessage)) {
 
-						const userExists = sqlite.select("select name from user where name = ?", toMessage);
-						if (userExists.length > 0) {
+						var userExists = [];
+						console.log(toMessage);
 
-							const count = sqlite.select("select count(user_to) as cRemind from remind where user_to = ?", toMessage)[0]["cRemind"];
+						async function setValue(value, toMessage, username, message, target) {
+				  		var userExists = await value;
+				  		console.log('userExists: ' + userExists);
+							cartinhaContinua(userExists, toMessage, username, message, target);
+						}
+
+						await con.query("select name from user where name = ?", toMessage, function (err, rows) {
+				                if (err){
+													console.log(err);
+													 throw err;
+												 }
+												 else{
+												setValue(rows[0].name, toMessage, username, message, target);
+											}
+				              }
+										);
+						async function cartinhaContinua(userExists, toMessage, username, message, target){
+
+						console.log("2");
+						console.log(userExists == null);
+						console.log(userExists == undefined);
+						console.log(userExists.length > 0);
+							console.log("2.5");
+							var count = [];
+							console.log("count 1: " + count);
+
+
+							async function setCount(value, toMessage, username, message, target) {
+					  		count = await value;
+					  		console.log('count func: ' + count);
+								cartinhaContinua2(count, toMessage, username, message, target);
+							}
+							await initCount(toMessage, username, message, target);
+
+							async function initCount(toMessage, username, message, target){
+								await con.query("select count(user_to) as cRemind from remind where user_to = ?", toMessage, function (err, rows) {
+					                if (err){
+														console.log(err);
+														 throw err;
+													 }
+													 else{
+													console.log(rows);
+													console.log("CREMINDS ABAIXO:");
+													console.log(rows[0].cRemind);
+													setCount(rows[0].cRemind, toMessage, username, message, target);
+												}
+					              }
+											);
+										}
+							async function cartinhaContinua2(count, toMessage, username, message, target){
+
+							console.log("3");
+							if (userExists.length > 0) {
+								console.log("3.5");
 							if (parseInt(count) < 4) {
+								let definedV = [username, toMessage, message];
+								console.log(username);
+								console.log(toMessage);
+								console.log(message);
+								console.log(target);
 
-								sqlite.run("insert into remind(user_from, user_to, message) values (?, ?, ?)", username, toMessage, message);
-								msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ cellEMOTE `;
-
+								con.query("insert into remind(user_from, user_to, message) values (?, ?, ?)", definedV, function (err, rows) {
+						                if (err) throw err;
+						              }
+												);
+								msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ ppL `;
+								console.log("4");
 							}else msg = `${username} eu já tenho muitas mensagens pra entregar para esse ai >(`;
 						}else msg = `${username}, não conheço esse usuário, não tenho como enviar isso cellH`;
 
 						app.say(target, msg, true);
 
 					}
+				}
+				}
+				}
 
 				}
 
@@ -499,30 +681,6 @@ const app = {
 
 
 				return true;
-			case `${prefix}comandos`:
-
-				let list = "";
-				allCommands.each((_, command) => {list += `${prefix}${command}; `});
-
-				app.say(target, `${username}, os comandos disponiveis são: ${list}`, true);
-				return true;
-			case `${prefix}comando`:
-
-				if (toCommand.length > 0) {
-
-					let search = toCommand.shift().toLowerCase();
-					allCommands.each((description, command) => {
-
-						if (command === search || `${prefix}${command}` === search)
-							msg = `${username}, ${prefix}${command} ${description}`;
-
-					});
-
-				}else
-					msg = `${username}, Digite \`$comando {comando}\` para mais informações sobre cada comando. Ex: \`$ajuda $repetir\``;
-
-				app.say(target, msg);
-				return true;
 
 		}
 
@@ -546,7 +704,7 @@ const app = {
 
 		if (app.regex.hello.test(toAnalise)) {
 
-			app.say(target,`${username} 👋 cellQ`);
+			app.say(target,`${username} 👋 :)`);
 
 			return true;
 		}else return false;
@@ -801,8 +959,7 @@ const app = {
 			messageType !== "chat" ||
 			app.mute[channel_name] ||
 			app.ignore.includes(username) ||
-			app.bots.includes(username) ||
-			rawText.testBanned(channel_name, prefix)
+			app.bots.includes(username)
 
 		) return;
 
@@ -827,7 +984,6 @@ const app = {
 		app.preprocess();
 		if (kkomrade === undefined)
 		app.autoMute();
-		sqlite.connect();
 
 		// Configs
 		const username = process.env.BOT_USERNAME;
@@ -855,5 +1011,6 @@ const app = {
 	}
 
 };
+
 
 app.init();

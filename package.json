@@ -9,9 +9,9 @@
     "stop": "forever stop app.js"
   },
   "dependencies": {
-    "better-sqlite3": "^5.4.0",
     "dotenv": "^8.0.0",
     "forever": "^1.0.0",
+    "mysql": "^2.17.1",
     "node-fetch": "^2.6.0",
     "tmi.js": "^1.4.5"
   },
