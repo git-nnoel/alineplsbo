@@ -1,24 +1,155 @@
 // Requires
 const tmi = require('tmi.js');
 const fetch = require("node-fetch");
-const mysql = require('mysql');
+const mongodb = require('mongodb')
+const MongoClient = mongodb.MongoClient
 const {randomInt, dateInterval} = require("./src/tools");
 require("dotenv").config();
 
-const con = mysql.createConnection({
-	host: 'localhost',
-	user: 'root',
-	password: 'leiaoguia',
-	database: 'aline',
-  charset : 'utf8mb4'
-});
+const connUrl = 'mongodb://localhost:27017';
+const dbName = 'aline'
+
+MongoClient.connect(connUrl, { useUnifiedTopology: true, useNewUrlParser: true }, (err, client) => {
+  if(err){
+    console.log("unable to connect, reason: ")
+    console.log(err)
+  }
+  else
+  console.log("Connected successfully to server");
+
+  const db = client.db(dbName);
+
+mong = {
+  select: async function(collection, statement){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).find(statement).toArray()
+        .then(result => {
+
+          return resolve(result)
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função select: " + e)
+
+      }
+    })
+  },
+
+  count: async function(collection, statement){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).find(statement).count()
+        .then(result => {
+
+          return resolve(result)
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função select: " + e)
+
+      }
+    })
+  },
+
+	aggregate: async function(collection, statement){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).aggregate([
+          { $match: statement },
+          { $sample: { size: 1 } }
+        ]).toArray()
+        .then(result => {
+
+          return resolve(result)
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função select: " + e)
+
+      }
+    })
+  },
+
+  insert: async function(collection, statement){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).insertOne(statement)
+        .then(result => {
+
+          return resolve(result.ops)
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função insert: " + e)
+
+      }
+    })
+  },
+
+  delete: async function(collection, statement){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).findOneAndDelete(statement)
+        .then(result => {
+
+          return resolve(result.value)
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função insert: " + e)
+
+      }
+    })
+  },
+
+  update: async function(collection, statement, newvalue){
+    return new Promise(function(resolve, reject) {
+      try{
+        db.collection(collection).findOneAndUpdate(statement, {$set: newvalue })
+        .then(result => {
+
+          return resolve({result,newvalue})
+        })
+        .catch(err => {
+          throw err;
+
+        })
+      }
+      catch(e){
+        console.log("erro na função insert: " + e)
+
+      }
+    })
+  },
+}
 
 // Handlers
 const app = {
 
 	conn : null,
-	blocked : ["cellbit"],
-	alter : ["carlamorena","tataxmei","alinepls"],
+	blocked : ["cellbit","carlamorena"],
+	alter : ["carlamorena","tataxmei","alinepls","jovinho"],
 
 	lastmsg: " ",
 	messageRateCounter: 0,
@@ -34,13 +165,13 @@ const app = {
 	Broken : false,
 
 	preprocess(){
-		const emotes = [];
+		const emotees = [];
 		const emotes1 = ["ve os {replace}", "ver os {replace}", "vejo os {replace}", "vejo esses {replace}", "como que ve esses {replace}", "onde que ve esses {replace}", "baixo essa {replace}", "o que e {replace}", "consigo essa {replace}", "baixa essa {replace}", "baixa a {replace}", "e essa {replace}", "extensao dos {replace}", "extencao dos {replace}"];
 		const emotes2 = ["emotes", "emote", "emoji", "emoticon", "emojis", "emoticons", "emtes", "extensao", "extencao", "extenção", "extensão", "bbtv", "bttv"];
 		emotes1.each(c1 => {
 			emotes2.each(c2 => {
 
-				emotes.push(c1.replaceAll("{replace}", c2).removeAccents().removeRepeats().trim())
+				emotees.push(c1.replaceAll("{replace}", c2).removeAccents().trim())
 
 			})
 		});
@@ -68,7 +199,7 @@ const app = {
 			lives2.each(l2 => {
 				lives3.each(l3 => {
 
-					const clear = l2.replaceAll("{replace}", l1).removeAccents().removeRepeats().trim();
+					const clear = l2.replaceAll("{replace}", l1).removeAccents().trim();
 					lives.push(`${l3} ${clear}`);
 					lives.push(`${clear} ${l3}`);
 
@@ -77,8 +208,6 @@ const app = {
 		});
 
 		const colors = ['OrangeRed', 'Chocolate', 'YellowGreen', 'SeaGreen', 'Blue', 'BlueViolet'];
-
-		const plug = ["link do plug", "ouvindo musica"];
 
 
 		const alineinteractions = [];
@@ -105,11 +234,12 @@ const app = {
 		});
 
 		app.regex.testForFake             = new RegExp("(" + fakeTest.join("|") + ")");
-		app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
-		app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
+		// app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
+		// app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
 		app.regex.hello                   = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
-		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
+		app.emotees 											= emotees;
+		app.livees												= lives;
 		app.smiles                        = smiles;
 		app.peepos												= peepos;
 		app.alineinteractions							= alineinteractions;
@@ -148,15 +278,15 @@ const app = {
 
 	},
 	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
-		console.log("5");
+		//console.log("5");
 		setTimeout(() => {
 
 			if ((app.messageRateCounter < 18) && ((!sleep) || (sleep && !app.sleepTime))) {
-				console.log("6");
+				//console.log("6");
 				if (msg !== undefined)
 				if(!msg.testBanned(target.replace("#", ""), "$")){
 
-					console.log("7");
+					//console.log("7");
 					if(timeouttime !== 0){
 						app.messageRateCounter++;
 						app.sleepTime = true;
@@ -196,106 +326,67 @@ const app = {
 	},
 
 	save_message(username, channel_name, rawText, prefix){
-		var userexist1 = null;
-		existUser(username, channel_name, rawText, prefix, userexist1)
 
-		async function existUser (username, channel_name, rawText, prefix, userexist1){
-			await con.query("select * from user where name = ?", username, function (err, rows) {
-                if (err) throw err;
-								console.log(rows === undefined);
-								if (rows[0] !== undefined)
-								userexist1 = rows[0].name;
-								console.log("usuario registrado: " + userexist1);
-								saveUser(username, channel_name, rawText, prefix, userexist1)
-              }
-            );
-					}
+		(async ()=>{
+			let res = await mong.select('user',{name: username})
+			if (res.length < 1)
+				await mong.insert('user', {name: 'username'})
+			addMessage(username, channel_name, rawText, prefix);
+    })();
 
-		async function saveUser(username, channel_name, rawText, prefix, userexist1){
-			console.log("usuario ja registrado: " + userexist1);
+		async function addMessage(username, channel_name, rawText, prefix){
 
-		if(userexist1 === null) {
-			await con.query("insert into user (name) values (?)", username, function (err, rows) {
-	                if (err) throw err;
-									addMessage(username, channel_name, rawText, prefix, userexist1);
+			//marcação no console...(ignora)
+			marcados = ["nnoel","noel","aline","alinepls","bot"];
+			marcados.forEach(marc =>{
 
-			});
-		}
-		else addMessage(username, channel_name, rawText, prefix, userexist1);
-		}
+				if(	rawText.contains(marc) ||
+						rawText.contains(marc + ",") ||
+						rawText.contains("@" + marc)
+					)
+				console.log("#"+ channel_name +" " + username + ": " + rawText)
 
-		function addMessage(username, channel_name, rawText, prefix, userexist1){
-			console.log(channel_name);
+			})
+			//marcação no console...(ignora)
+
 			if (rawText.charAt(0) !== "$") {
-				let userTT = [username, channel_name, rawText];
-				con.query("insert into message_on_channel values(?, ?, ?, CURRENT_TIMESTAMP)", userTT, function (err, rows) {
-	                if (err) throw err;
-									console.log("inserted: " + rows);
-	    	});
-			}
+        agora = new Date().toLocaleDateString();
+				await mong.insert('message_on_channel', {
+					user_name: username,
+					channel_name: channel_name,
+					message: rawText,
+          sended_at: agora
+				})
+	    }
 		}
 
 	},
 	has_remind(username, target){
-		console.log("0.01");
-		has_remindT(username, target)
-		async function has_remindT(username, target){
-		var hasMessage = [];
-		console.log("0.02");
-		selectRemind(username, target)
-		async function selectRemind(username, target){
-		await con.query("select user_from, message from remind where user_to = ?", username, function (err, rows) {
-                if (err) throw err;
-								console.log("select user_from: " + rows)
-								hasMessage = rows;
-								console.log(hasMessage);
-								continuaRemindT(username, target, hasMessage);
-              }
-						);
-					}
+    (async ()=>{
+      let res = await mong.select('remind',{sent_to: username})
+      if (res.length > 0){
+        for(i=0 ; res[i] !== undefined ; i++){
 
-					async function continuaRemindT(username, target, hasMessage){
-		if (hasMessage !== null)
-		if (hasMessage.length > 0){
+  				const from = res[i]["sended_from"];
+  				const message = res[i]["message"];
 
-			hasMessage.forEach(messageData => {
-
-				const from = messageData["user_from"];
-				const message = messageData["message"];
-
-				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
-
-			});
-			con.query("delete from remind where user_to = ?", username, function (err, rows) {
-	                if (err) throw err;
-	              }
-							);
-			return true;
-
-		}else return false;
-	}
-}
+  				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
+          await mong.delete('remind',{_id: res[i]['_id']})
+  			}
+      }return true;
+    })();
 	},
 	is_return_afk(username, target){
-		return;
-		var isReturnOfAFK = null;
-		con.query("select message, started_at from afk where user_name = ?", username, function (err, rows) {
-								if (err) throw err;
-								isReturnOfAFK = rows;
-							}
-						);
-		if (isReturnOfAFK !== null)
-		if (isReturnOfAFK.length > 0) {
+		(async ()=>{
+			isReturnOfAFK = await mong.select('afk',{username: username})
+			if (isReturnOfAFK.length > 0) {
+				app.say(target, `${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"]+'')}: ${isReturnOfAFK[0]["message"]}`, true);
+				await mong.delete('afk',{username: username});
 
-			app.say(target, `${username} voltou após ${dateInterval(isReturnOfAFK[0]["started_at"])}: ${isReturnOfAFK[0]["message"]}`, true);
-			con.query("delete from afk where user_name = ?", username, function (err, rows) {
-	                if (err) throw err;
-	              }
-							);
+				return true;
 
-			return true;
-
-		}else return false;
+			}else return false;
+		})();
 
 	},
 	is_a_command(rawText, prefix, username, target){
@@ -307,13 +398,11 @@ const app = {
 		String.prototype.testBanned = function(channel_name, prefix){
 
 		    const rawText = this;
-		    var bannedPhrases = [];
-		    con.query("select phrase, action from bannedPhrase where channel_name = ?", channel_name, (err,rows) => {
-		      if(err) throw err;
-		      bannedPhrases = rows;
-					for(i = 0 ; rows[i] !== undefined ; i++)
-					bannedPhrasesTest(rawText, rows[i].phrase);
-		    });
+				(async ()=>{
+					let res = mong.select('bannedPhrase',{channel_name: channel_name})
+					for(i=0 ; res[i] !== undefined ; i++)
+					bannedPhrasesTest(rawText, res[i].phrase)
+				})();
 				function bannedPhrasesTest(rawText, bannedPhrase){
 
 		    let toAnalise = rawText.removeSpecialChars(prefix).removeRepeats().trim();
@@ -374,7 +463,7 @@ const app = {
 
 				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
-				if(app.masters.includes(`${username}`)){
+				// if(app.masters.includes(`${username}`)){
 
 					const size = Math.abs(parseInt(toCommand.shift()));
 					if (!isNaN(size)) {
@@ -396,12 +485,12 @@ const app = {
 
 					}
 
-				}
+				// }
 
 				return true;
 			case `${prefix}spam`:
-				//if(app.blocked.includes(channel_name)) return;
-				return;
+			if(app.blocked.includes(channel_name))
+			return;
 
 
 				const toSpam = toCommand.join(" ");
@@ -464,20 +553,18 @@ const app = {
 
 				return true;
 			case `${prefix}afk`:
-			if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
+				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 				if (toCommand.length > 0)
 					msg = toCommand.join(" ");
 
 				else
 					msg = "🔇 :z";
 
-				function insertIntoAFK(){
-				con.query("insert into afk(user_name, message, started_at) values(?, ?, CURRENT_TIMESTAMP)", username, msg, function (err, rows) {
-		    	if (err) throw err;
-					app.say(target,`o ${username} está afk agora :z 💤 `, true);
-		    		}
-					);
-				}
+				(async ()=>{
+        agora = new Date
+				await mong.insert('afk',{username: username, message: msg, started_at: agora})
+				app.say(target,`o ${username} está afk agora :z 💤 `, true);
+				})();
 				// app.say(target,`o ${username} está afk agora :z 💤 `, true);
 
 				return true;
@@ -491,21 +578,17 @@ const app = {
 
 				if (!app.bots.includes(uTarget)) {
 
-					// noinspection SqlResolve
-					var dResult = null;
-					con.query(`SELECT message, sended_at FROM message_on_channel WHERE channel_name = ? and user_name = ? order by rand() limit 1`, [channel_name, uTarget], function (err, rows) {
-			                if (err) throw err;
-											dResult = rows;
-											rldResult(dResult, target, msg, uTarget);
-			              }
-									);
-					function rldResult(dResult, target, msg, uTarget){
+					(async ()=>{
+						let res = await mong.aggregate('message_on_channel',{user_name: uTarget, channel_name: channel_name})
+						rldResult(res, target, uTarget);
+					})();
+					function rldResult(dResult, target, uTarget){
 					if (dResult !== null)
 					if (dResult.length > 0) {
 
-						let message = dResult[0]["message"];
+						let message = dResult[0].message;
 
-						let date = new Date(dResult[0]["sended_at"] + " GMT");
+						let date = new Date(dResult[0].sended_at + " GMT");
 
 						let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
 						let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
@@ -527,24 +610,19 @@ const app = {
 
 				return true;
 			case `${prefix}rq`:
-			return true;
 
-				// noinspection SqlResolve
-				var dataResult = null;
-				con.query(`SELECT user_name, message, sended_at FROM message_on_channel WHERE channel_name = ? order by random() limit 1`, [channel_name], function (err, rows) {
-		                if (err) throw err;
-										dataResult = rows;
-										rqResult(dataResult, target, msg);
-		              }
-								);
-								function rqResult(dataResult, target, msg){
+        (async ()=>{
+          let res = await mong.aggregate('message_on_channel',{channel_name: channel_name})
+          rqResult(res, target);
+        })();
+				function rqResult(dataResult, target){
 				if (dataResult !== null)
 				if (dataResult.length > 0) {
 
-					let message = dataResult[0]["message"];
-					let user = dataResult[0]["user_name"];
+					let message = dataResult[0].message;
+					let user = dataResult[0].user_name;
 
-					let date = new Date(dataResult[0]["sended_at"] + " GMT");
+					let date = new Date(dataResult[0].sended_at + " GMT");
 
 					let day     = date.getDate()    > 9 ? date.getDate()    : "0" + date.getDate();
 					let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
@@ -561,124 +639,42 @@ const app = {
 				}
 				return true;
 			case `${prefix}carta`:
-				console.log("0");
+				//console.log("0");
 				cartinha(toCommand, username, target);
 				async function cartinha(toCommand, username, target){
 				if (toCommand.length > 1) {
-					console.log("1");
+					//console.log("1");
 					const toMessage = toCommand.shift().toLowerCase();
 					const message = toCommand.join(" ");
 
 					if (!app.bots.includes(toMessage)) {
 
-						var userExists = [];
-						console.log(toMessage);
+            (async ()=> {
+              let res = await mong.select('user',{name: toMessage})
+              if (res.length > 0)
+                novaCartinha(toMessage, username, message, target);
+              else{
+                msg = `${username}, não conheço esse usuário, não tenho como enviar isso PepeHands ✉`;
+                app.say(target, msg, true);
+              }
+            })();
+						async function novaCartinha(toMessage, username, message, target){
 
-						async function setValue(value, toMessage, username, message, target) {
-				  		var userExists = await value;
-				  		console.log('userExists: ' + userExists);
-							cartinhaContinua(userExists, toMessage, username, message, target);
-						}
-
-						await con.query("select name from user where name = ?", toMessage, function (err, rows) {
-				                if (err){
-													console.log(err);
-													 throw err;
-												 }
-												 else{
-												setValue(rows[0].name, toMessage, username, message, target);
-											}
-				              }
-										);
-						async function cartinhaContinua(userExists, toMessage, username, message, target){
-
-						console.log("2");
-						console.log(userExists == null);
-						console.log(userExists == undefined);
-						console.log(userExists.length > 0);
-							console.log("2.5");
-							var count = [];
-							console.log("count 1: " + count);
-
-
-							async function setCount(value, toMessage, username, message, target) {
-					  		count = await value;
-					  		console.log('count func: ' + count);
-								cartinhaContinua2(count, toMessage, username, message, target);
-							}
-							await initCount(toMessage, username, message, target);
-
-							async function initCount(toMessage, username, message, target){
-								await con.query("select count(user_to) as cRemind from remind where user_to = ?", toMessage, function (err, rows) {
-					                if (err){
-														console.log(err);
-														 throw err;
-													 }
-													 else{
-													console.log(rows);
-													console.log("CREMINDS ABAIXO:");
-													console.log(rows[0].cRemind);
-													setCount(rows[0].cRemind, toMessage, username, message, target);
-												}
-					              }
-											);
-										}
-							async function cartinhaContinua2(count, toMessage, username, message, target){
-
-							console.log("3");
-							if (userExists.length > 0) {
-								console.log("3.5");
-							if (parseInt(count) < 4) {
-								let definedV = [username, toMessage, message];
-								console.log(username);
-								console.log(toMessage);
-								console.log(message);
-								console.log(target);
-
-								con.query("insert into remind(user_from, user_to, message) values (?, ?, ?)", definedV, function (err, rows) {
-						                if (err) throw err;
-						              }
-												);
-								msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ ppL `;
-								console.log("4");
-							}else msg = `${username} eu já tenho muitas mensagens pra entregar para esse ai >(`;
-						}else msg = `${username}, não conheço esse usuário, não tenho como enviar isso cellH`;
-
-						app.say(target, msg, true);
-
-					}
+              let count = await mong.count('remind',{sent_to: toMessage})
+              if (count < 4){
+                await mong.insert('remind',{sended_from: username, sent_to: toMessage, message: message})
+                msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ ppL `;
+                app.say(target, msg, true);
+              }
+              else {
+                msg = `${username} eu já tenho muitas mensagens pra entregar para esse ai >(`;
+                app.say(target, msg, true)
+              }
 				}
 				}
 				}
 
 				}
-
-				return true;
-			case `${prefix}rainbow`:
-			return;
-
-				if (toCommand.length > 0 && toCommand.length <= 10) {
-					var rainbowtext = toCommand.shift();
-				}
-				else{
-					var rainbowtext = "RainbowPls it's Rainbow Time";
-				}
-
-				// if (channel_name === "cellbit"){
-				// 	var rainbowsleep = true
-				//
-				// }
-				// else{
-				// 	var rainbowsleep = false
-				// }
-
-				app.colors.each(col => {
-					app.say(target, "/color " + col, false, false);
-					app.say(target, "/me " + rainbowtext, false, false);
-				});
-
-				app.say(target, "/color " + app.originalcolor, false, false)
-
 
 				return true;
 
@@ -693,7 +689,6 @@ const app = {
 		return (
 			app.testHello(toAnalise, username, target) ||
 			app.testLive(toAnalise, rawText, username, target) ||
-			app.testPlug(toAnalise, rawText, username, target) ||
 			app.testEmotes(toAnalise, rawText, username, target) ||
     	app.testInteraction(toAnalise, rawText, username, target) ||
 			app.testTPeepos(toAnalise, rawText, username, target)
@@ -713,33 +708,35 @@ const app = {
 	testLive(toAnalise, rawText, username, target){
 		const channel_name = target.replace("#", "");
 		if (app.alter.includes(channel_name)) return false;
-		if (app.regex.lives.test(toAnalise) && rawText.indexOf("?") !== -1) {
+
+		return app.livees.each(lv => {
+		if (
+
+			toAnalise.removeAccents().contains(lv) ||
+			toAnalise.removeAccents().removeRepeats().contains(lv) ||
+			toAnalise.removeAccents().contains(lv+"?")
+
+		) {
 
 			app.say(target,`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
 
 			return true;
-		}else return false;
-
-	},
-	testPlug(toAnalise, rawText, username, target){
-		const channel_name = target.replace("#", "");
-		if (app.alter.includes(channel_name)) return false;
-		if (app.regex.plug.test(toAnalise) && rawText.indexOf("?") !== -1) {
-
-			app.say(target,`${username} plug.dj/alinepls pepeJAM`);
-
-			return true;
-		}else return false;
+		}
+	})
 
 	},
 	testEmotes(toAnalise, rawText, username, target){
 		const channel_name = target.replace("#", "");
-		if (app.alter.includes(channel_name)) return false;
-		if (
+		if (app.alter.includes(channel_name)) return;
 
-			rawText.indexOf("?") !== -1 &&
-			!app.regex.testForFake.test(rawText) &&
-			app.regex.emotes.test(toAnalise)
+		return app.emotees.each(et => {
+
+			// //console.log(et)
+
+			if (
+
+			toAnalise.contains(et) ||
+			toAnalise.contains(et+"?")
 
 		) {
 
@@ -747,7 +744,8 @@ const app = {
 			app.say(target, `${username} ou !mobile se você estiver no celular :z`, true);
 
 			return true;
-		}else return false;
+		}
+	})
 
 	},
   	testInteraction(toAnalise, rawText, username, target){
@@ -1011,6 +1009,5 @@ const app = {
 	}
 
 };
-
-
 app.init();
+});

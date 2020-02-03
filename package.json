@@ -1,5 +1,5 @@
 {
-  "name": "liria-bot",
+  "name": "aline-bot",
   "version": "0.0.1",
   "description": "A simple chatbot for twitch chat",
   "main": "app.js",
@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "dotenv": "^8.0.0",
-    "forever": "^1.0.0",
+    "forever": "^2.0.0",
+    "mongodb": "^3.5.2",
     "mysql": "^2.17.1",
     "node-fetch": "^2.6.0",
     "tmi.js": "^1.4.5"
