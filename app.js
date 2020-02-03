@@ -9,7 +9,7 @@ const con = mysql.createConnection({
 	host: 'localhost',
 	user: 'root',
 	password: 'leiaoguia',
-	database: 'aline',
+	database: 'aline2',
   charset : 'utf8mb4'
 });
 
@@ -17,8 +17,8 @@ const con = mysql.createConnection({
 const app = {
 
 	conn : null,
-	blocked : ["cellbit"],
-	alter : ["carlamorena","tataxmei","alinepls"],
+	blocked : ["cellbit","carlamorena"],
+	alter : ["carlamorena","tataxmei","alinepls","jovinho"],
 
 	lastmsg: " ",
 	messageRateCounter: 0,
@@ -34,13 +34,13 @@ const app = {
 	Broken : false,
 
 	preprocess(){
-		const emotes = [];
+		const emotees = [];
 		const emotes1 = ["ve os {replace}", "ver os {replace}", "vejo os {replace}", "vejo esses {replace}", "como que ve esses {replace}", "onde que ve esses {replace}", "baixo essa {replace}", "o que e {replace}", "consigo essa {replace}", "baixa essa {replace}", "baixa a {replace}", "e essa {replace}", "extensao dos {replace}", "extencao dos {replace}"];
 		const emotes2 = ["emotes", "emote", "emoji", "emoticon", "emojis", "emoticons", "emtes", "extensao", "extencao", "extenção", "extensão", "bbtv", "bttv"];
 		emotes1.each(c1 => {
 			emotes2.each(c2 => {
 
-				emotes.push(c1.replaceAll("{replace}", c2).removeAccents().removeRepeats().trim())
+				emotees.push(c1.replaceAll("{replace}", c2).removeAccents().trim())
 
 			})
 		});
@@ -68,7 +68,7 @@ const app = {
 			lives2.each(l2 => {
 				lives3.each(l3 => {
 
-					const clear = l2.replaceAll("{replace}", l1).removeAccents().removeRepeats().trim();
+					const clear = l2.replaceAll("{replace}", l1).removeAccents().trim();
 					lives.push(`${l3} ${clear}`);
 					lives.push(`${clear} ${l3}`);
 
@@ -77,8 +77,6 @@ const app = {
 		});
 
 		const colors = ['OrangeRed', 'Chocolate', 'YellowGreen', 'SeaGreen', 'Blue', 'BlueViolet'];
-
-		const plug = ["link do plug", "ouvindo musica"];
 
 
 		const alineinteractions = [];
@@ -105,11 +103,12 @@ const app = {
 		});
 
 		app.regex.testForFake             = new RegExp("(" + fakeTest.join("|") + ")");
-		app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
-		app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
+		// app.regex.lives                   = new RegExp("\\b(" + lives.join("|") + ")\\b", "i");
+		// app.regex.emotes                  = new RegExp("\\b(" + emotes.join("|") + ")\\b", "i");
 		app.regex.hello                   = new RegExp("\\b(" + hel.join("|") + ")\\b", "i");
-		app.regex.plug                    = new RegExp("\\b(" + plug.join("|") + ")\\b", "i");
 	  app.regex.names                   = new RegExp("(" + names.join("|") + ")");
+		app.emotees 											= emotees;
+		app.livees												= lives;
 		app.smiles                        = smiles;
 		app.peepos												= peepos;
 		app.alineinteractions							= alineinteractions;
@@ -148,15 +147,15 @@ const app = {
 
 	},
 	say(target, msg, retain = false, sleep = true, timeouttime = 1000){
-		console.log("5");
+		//console.log("5");
 		setTimeout(() => {
 
 			if ((app.messageRateCounter < 18) && ((!sleep) || (sleep && !app.sleepTime))) {
-				console.log("6");
+				//console.log("6");
 				if (msg !== undefined)
 				if(!msg.testBanned(target.replace("#", ""), "$")){
 
-					console.log("7");
+					//console.log("7");
 					if(timeouttime !== 0){
 						app.messageRateCounter++;
 						app.sleepTime = true;
@@ -202,21 +201,23 @@ const app = {
 		async function existUser (username, channel_name, rawText, prefix, userexist1){
 			await con.query("select * from user where name = ?", username, function (err, rows) {
                 if (err) throw err;
-								console.log(rows === undefined);
+								//console.log(rows === undefined);
 								if (rows[0] !== undefined)
 								userexist1 = rows[0].name;
-								console.log("usuario registrado: " + userexist1);
+								//console.log("usuario registrado: " + userexist1);
 								saveUser(username, channel_name, rawText, prefix, userexist1)
               }
             );
 					}
 
 		async function saveUser(username, channel_name, rawText, prefix, userexist1){
-			console.log("usuario ja registrado: " + userexist1);
+			//console.log("usuario ja registrado: " + userexist1);
 
 		if(userexist1 === null) {
 			await con.query("insert into user (name) values (?)", username, function (err, rows) {
-	                if (err) throw err;
+	                if (err)
+									console.log(err);
+									else
 									addMessage(username, channel_name, rawText, prefix, userexist1);
 
 			});
@@ -225,48 +226,62 @@ const app = {
 		}
 
 		function addMessage(username, channel_name, rawText, prefix, userexist1){
-			console.log(channel_name);
+			// console.log(channel_name);
+			marcados = ["nnoel","noel","aline","alinepls","bot"];
+			marcados.forEach(marc =>{
+
+				if(	rawText.contains(marc) ||
+						rawText.contains(marc + ",") ||
+						rawText.contains("@" + marc)
+					)
+				console.log("#"+ channel_name +" " + username + ": " + rawText)
+
+			})
 			if (rawText.charAt(0) !== "$") {
 				let userTT = [username, channel_name, rawText];
 				con.query("insert into message_on_channel values(?, ?, ?, CURRENT_TIMESTAMP)", userTT, function (err, rows) {
-	                if (err) throw err;
-									console.log("inserted: " + rows);
+	                if (err)
+									throw err;
+									// console.log("inserted: " + rows);
+									// HERE I GO
+
 	    	});
 			}
 		}
 
 	},
 	has_remind(username, target){
-		console.log("0.01");
+		//console.log("0.01");
 		has_remindT(username, target)
 		async function has_remindT(username, target){
 		var hasMessage = [];
-		console.log("0.02");
+		//console.log("0.02");
 		selectRemind(username, target)
 		async function selectRemind(username, target){
-		await con.query("select user_from, message from remind where user_to = ?", username, function (err, rows) {
+		await con.query("select sended_from, message from remind where sent_to = ?", username, function (err, rows) {
                 if (err) throw err;
-								console.log("select user_from: " + rows)
+								//console.log("select sended_from: " + rows)
 								hasMessage = rows;
-								console.log(hasMessage);
+								//console.log(hasMessage == undefined);
 								continuaRemindT(username, target, hasMessage);
               }
 						);
 					}
 
 					async function continuaRemindT(username, target, hasMessage){
-		if (hasMessage !== null)
-		if (hasMessage.length > 0){
+		if (hasMessage !== null &&
+				hasMessage.length > 0 &&
+				hasMessage !== undefined){
 
 			hasMessage.forEach(messageData => {
 
-				const from = messageData["user_from"];
+				const from = messageData["sended_from"];
 				const message = messageData["message"];
 
 				app.say(target, `${username}, AYAYA FBBlock ✉ carta de ${from}: ${message}`, true);
 
 			});
-			con.query("delete from remind where user_to = ?", username, function (err, rows) {
+			con.query("delete from remind where sent_to = ?", username, function (err, rows) {
 	                if (err) throw err;
 	              }
 							);
@@ -374,7 +389,7 @@ const app = {
 
 				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
 
-				if(app.masters.includes(`${username}`)){
+				// if(app.masters.includes(`${username}`)){
 
 					const size = Math.abs(parseInt(toCommand.shift()));
 					if (!isNaN(size)) {
@@ -396,12 +411,12 @@ const app = {
 
 					}
 
-				}
+				// }
 
 				return true;
 			case `${prefix}spam`:
-				//if(app.blocked.includes(channel_name)) return;
-				return;
+			if(app.blocked.includes(channel_name))
+			return;
 
 
 				const toSpam = toCommand.join(" ");
@@ -561,63 +576,68 @@ const app = {
 				}
 				return true;
 			case `${prefix}carta`:
-				console.log("0");
+				//console.log("0");
 				cartinha(toCommand, username, target);
 				async function cartinha(toCommand, username, target){
 				if (toCommand.length > 1) {
-					console.log("1");
+					//console.log("1");
 					const toMessage = toCommand.shift().toLowerCase();
 					const message = toCommand.join(" ");
 
 					if (!app.bots.includes(toMessage)) {
 
 						var userExists = [];
-						console.log(toMessage);
+						//console.log(toMessage);
 
 						async function setValue(value, toMessage, username, message, target) {
 				  		var userExists = await value;
-				  		console.log('userExists: ' + userExists);
+				  		//console.log('userExists: ' + userExists);
 							cartinhaContinua(userExists, toMessage, username, message, target);
 						}
 
-						await con.query("select name from user where name = ?", toMessage, function (err, rows) {
+						await con.query("select * from user where name = ?", toMessage, function (err, rows) {
 				                if (err){
-													console.log(err);
+													//console.log(err);
 													 throw err;
 												 }
 												 else{
+													 if(rows[0] !== undefined){
 												setValue(rows[0].name, toMessage, username, message, target);
+											}
+													else
+													msg = `${username}, não conheço esse usuário, não tenho como enviar isso cellH`;
+													app.say(target, msg, true);
 											}
 				              }
 										);
 						async function cartinhaContinua(userExists, toMessage, username, message, target){
 
-						console.log("2");
-						console.log(userExists == null);
-						console.log(userExists == undefined);
-						console.log(userExists.length > 0);
-							console.log("2.5");
+						//console.log("2");
+						//console.log(userExists == null);
+						//console.log(userExists == undefined);
+						//console.log(userExists.length > 0);
+							//console.log("2.5");
 							var count = [];
-							console.log("count 1: " + count);
+							//console.log("count 1: " + count);
 
 
 							async function setCount(value, toMessage, username, message, target) {
 					  		count = await value;
-					  		console.log('count func: ' + count);
+					  		//console.log('count func: ' + count);
 								cartinhaContinua2(count, toMessage, username, message, target);
 							}
 							await initCount(toMessage, username, message, target);
 
 							async function initCount(toMessage, username, message, target){
-								await con.query("select count(user_to) as cRemind from remind where user_to = ?", toMessage, function (err, rows) {
+								await con.query("select count(sent_to) as cRemind from remind where sent_to = ?", toMessage, function (err, rows) {
 					                if (err){
-														console.log(err);
+														//console.log(err);
 														 throw err;
 													 }
 													 else{
-													console.log(rows);
-													console.log("CREMINDS ABAIXO:");
-													console.log(rows[0].cRemind);
+													//console.log(rows);
+													//console.log("CREMINDS ABAIXO:");
+													//console.log(rows[0].cRemind);
 													setCount(rows[0].cRemind, toMessage, username, message, target);
 												}
 					              }
@@ -625,22 +645,22 @@ const app = {
 										}
 							async function cartinhaContinua2(count, toMessage, username, message, target){
 
-							console.log("3");
+							//console.log("3");
 							if (userExists.length > 0) {
-								console.log("3.5");
+								//console.log("3.5");
 							if (parseInt(count) < 4) {
 								let definedV = [username, toMessage, message];
-								console.log(username);
-								console.log(toMessage);
-								console.log(message);
-								console.log(target);
+								//console.log(username);
+								//console.log(toMessage);
+								//console.log(message);
+								//console.log(target);
 
-								con.query("insert into remind(user_from, user_to, message) values (?, ?, ?)", definedV, function (err, rows) {
+								con.query("insert into remind(sended_from, sent_to, message) values (?, ?, ?)", definedV, function (err, rows) {
 						                if (err) throw err;
 						              }
 												);
 								msg = `${username} deixa comigo! sua mensagem vai chegar nele. assim que eu achar ele... ✉ ppL `;
-								console.log("4");
+								//console.log("4");
 							}else msg = `${username} eu já tenho muitas mensagens pra entregar para esse ai >(`;
 						}else msg = `${username}, não conheço esse usuário, não tenho como enviar isso cellH`;
 
@@ -693,7 +713,6 @@ const app = {
 		return (
 			app.testHello(toAnalise, username, target) ||
 			app.testLive(toAnalise, rawText, username, target) ||
-			app.testPlug(toAnalise, rawText, username, target) ||
 			app.testEmotes(toAnalise, rawText, username, target) ||
     	app.testInteraction(toAnalise, rawText, username, target) ||
 			app.testTPeepos(toAnalise, rawText, username, target)
@@ -713,33 +732,35 @@ const app = {
 	testLive(toAnalise, rawText, username, target){
 		const channel_name = target.replace("#", "");
 		if (app.alter.includes(channel_name)) return false;
-		if (app.regex.lives.test(toAnalise) && rawText.indexOf("?") !== -1) {
+
+		return app.livees.each(lv => {
+		if (
+
+			toAnalise.removeAccents().contains(lv) ||
+			toAnalise.removeAccents().removeRepeats().contains(lv) ||
+			toAnalise.removeAccents().contains(lv+"?")
+
+		) {
 
 			app.say(target,`${username} escreve !status no chat pra saber da proxima live :z TeaTime`);
 
 			return true;
-		}else return false;
-
-	},
-	testPlug(toAnalise, rawText, username, target){
-		const channel_name = target.replace("#", "");
-		if (app.alter.includes(channel_name)) return false;
-		if (app.regex.plug.test(toAnalise) && rawText.indexOf("?") !== -1) {
-
-			app.say(target,`${username} plug.dj/alinepls pepeJAM`);
-
-			return true;
-		}else return false;
+		}
+	})
 
 	},
 	testEmotes(toAnalise, rawText, username, target){
 		const channel_name = target.replace("#", "");
-		if (app.alter.includes(channel_name)) return false;
-		if (
+		if (app.alter.includes(channel_name)) return;
 
-			rawText.indexOf("?") !== -1 &&
-			!app.regex.testForFake.test(rawText) &&
-			app.regex.emotes.test(toAnalise)
+		return app.emotees.each(et => {
+
+			// //console.log(et)
+
+			if (
+
+			toAnalise.contains(et) ||
+			toAnalise.contains(et+"?")
 
 		) {
 
@@ -747,7 +768,8 @@ const app = {
 			app.say(target, `${username} ou !mobile se você estiver no celular :z`, true);
 
 			return true;
-		}else return false;
+		}
+	})
 
 	},
   	testInteraction(toAnalise, rawText, username, target){
