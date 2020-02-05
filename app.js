@@ -1,4 +1,4 @@
-// Requires
+liriapatin// Requires
 const tmi = require('tmi.js');
 const fetch = require("node-fetch");
 const mongodb = require('mongodb')
@@ -156,7 +156,7 @@ const app = {
 	sleepTime: false,
 
 	mute: {},
-	masters : ["nnoel", "liriapatinho", "bhaskarai", "lulclip_it", "noblezito", "tataxmei","carlamorena", "s_amuk"],
+	masters : ["nnoel", "liriapatin", "bhaskarai", "lulclip_it", "noblezito", "tataxmei","carlamorena", "s_amuk"],
 	bots : ["magicbot321", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot", "supibot"],
 	ignore : [],
 	regex : {},
