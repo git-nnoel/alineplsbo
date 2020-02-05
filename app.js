@@ -1,4 +1,4 @@
-liriapatin// Requires
+// Requires
 const tmi = require('tmi.js');
 const fetch = require("node-fetch");
 const mongodb = require('mongodb')
