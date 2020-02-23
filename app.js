@@ -156,7 +156,7 @@ const app = {
 	sleepTime: false,
 
 	mute: {},
-	masters : ["nnoel", "liriapatin", "bhaskarai", "lulclip_it", "noblezito", "tataxmei","carlamorena", "s_amuk"],
+	masters : ["danklads", "liriapatin", "bhaskarai", "lulclip_it", "noblezito", "tataxmei","carlamorena", "s_amuk"],
 	bots : ["magicbot321", "moobot", "priestbot", "nightbot", "phantombot", "streamelements", "streamlabs", "baguette_bot", "vivbot", "coolshiba", "ohbot", "deepbot", "ankhbot", "wizeBot", "coebot", "xanbot", "hnlbot", "drangrybot", "stay_hydrated_bot", "alinepls", "liriabot", "supibot"],
 	ignore : [],
 	regex : {},
@@ -537,7 +537,7 @@ const app = {
 
 				return true;
 			case `${prefix}afk`:
-				if(app.blocked.includes(channel_name)||app.ignore.includes(`${username}`)) return;
+				if(app.ignore.includes(`${username}`)) return;
 				if (toCommand.length > 0)
 					msg = toCommand.join(" ");
 
@@ -579,6 +579,8 @@ const app = {
 						let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
 						let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
 
+            month = parseInt(month) + 1;
+
 						let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
 						let hourFormatted = `${hours}:${minutes}`;
 
@@ -612,6 +614,8 @@ const app = {
 					let month   = date.getMonth()   > 9 ? date.getMonth()   : "0" + date.getMonth();
 					let hours   = date.getHours()   > 9 ? date.getHours()   : "0" + date.getHours();
 					let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
+
+          month = parseInt(month) + 1;
 
 					let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
 					let hourFormatted = `${hours}:${minutes}`;
