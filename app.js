@@ -1,6 +1,7 @@
 // Requires
 const tmi = require('tmi.js');
 const fetch = require("node-fetch");
+const translate = require('@vitalets/google-translate-api');
 const mongodb = require('mongodb')
 const MongoClient = mongodb.MongoClient
 const {randomInt, dateInterval} = require("./src/tools");
@@ -504,6 +505,21 @@ const app = {
 				app.say(target, msg);
 
 				return true;
+      case `${prefix}traduz`:
+        msg = toCommand.join(" ")
+
+        if (msg.contains("dank")) statement = {from: 'en', to: 'pt'}
+        else statement = {to: 'pt'}
+
+        translate(msg, statement).then(res => {
+          toSay = " " + res.text
+          app.say(target, toSay, false, false);
+            // console.log(res.from.language.iso);
+        }).catch(err => {
+          console.error(err);
+        });
+
+        return true;
 			case `${prefix}love`:
 
 				const percent = [
@@ -580,6 +596,7 @@ const app = {
 						let minutes = date.getMinutes() > 9 ? date.getMinutes() : "0" + date.getMinutes();
 
             month = parseInt(month) + 1;
+            day = parseInt(day) + 1;
 
 						let dateFormatted = `${day}/${month}/${date.getFullYear()}`;
 						let hourFormatted = `${hours}:${minutes}`;

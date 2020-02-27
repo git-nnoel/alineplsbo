@@ -9,6 +9,7 @@
     "stop": "forever stop app.js"
   },
   "dependencies": {
+    "@vitalets/google-translate-api": "^3.0.0",
     "dotenv": "^8.0.0",
     "forever": "^2.0.0",
     "mongodb": "^3.5.2",
